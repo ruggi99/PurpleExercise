@@ -1,0 +1,32 @@
+﻿{
+  "startExclusion": 1,
+  "domain": {
+    "hostname": "dc",
+    "name": "child.local",
+    "netbiosName": "child",
+    "dcip": "172.27.18.68",
+    "admin": "Administrator",
+    "password": "Password%",
+    "usersLimit": "50",
+    "value": 10,
+    "valueSimpleUser": 1,
+    "valueEnterpriseAdmin": 10,
+    "valueDomainAdmin": 5
+  },
+  "assets": [
+    {
+      "hostname": "srv",
+      "ip": "172.27.18.139",
+      "username": "administrator",
+      "password": "Password%",
+      "value": 1
+    },
+    {
+        "hostname": "workstation",
+        "ip": "172.27.18.62",
+        "username": "Administrator",
+        "password": "Password%",
+        "value": 5
+    }
+  ]
+}
