@@ -2,7 +2,7 @@
     [string]$Hostname
      )
 
-Import-Module = "Utils\Add-ADUser.ps1"
+Import-Module ".\Utils\Add-ADUser.ps1"
 
 # AD INITIALIZATION
 # Define configuration file path
@@ -17,8 +17,6 @@ throw "Configuration file not found. Check file path."
 # Load configuration file
 $config = Get-Content -Path $configPath -Raw | ConvertFrom-Json
 
-# Define the domain name
-$Domain = $config.domain.name
 
 # Define users limit
 $UsersLimit = $config.domain.usersLimit
@@ -28,9 +26,8 @@ $admin = New-Object System.Management.Automation.PSCredential -ArgumentList $($c
 
 $SamAccountName,$password = AddADUser
 
-        Invoke-Command -ComputerName $Hostname -Credential $admin -ScriptBlock {
-	    cmd /c net localgroup "Administrators" $using:SamAccountName /add | Out-Null
-	}
-
-
+Invoke-Command -ComputerName $Hostname -Credential $admin -ScriptBlock {
+	cmd /c net localgroup "Administrators" $using:SamAccountName /add | Out-Null
 }
+
+

@@ -1,11 +1,11 @@
 ﻿
 param(
-    [string]$Hostname,
+    [string]$Hostname
      )
 
 	# AD INITIALIZATION
 	# Define configuration file path
-	$configPath = "AD_network.json"
+	$configPath = ".\AD_network.json"
 
 	# Check configuration file path	
 	if (-not (Test-Path -Path $configPath)) {
@@ -39,4 +39,3 @@ param(
       }
 
 
-}

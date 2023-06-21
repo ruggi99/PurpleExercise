@@ -33,6 +33,10 @@ if (-not $test.ProtocolAddress) {
     $points += $asset.value
 }
 
+
+# Create credential object for the local admin
+$admin = New-Object System.Management.Automation.PSCredential -ArgumentList $($config.domain.admin), (ConvertTo-SecureString -String $config.domain.password -AsPlainText -Force)
+
 $response = Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock { 
     $enterpriseAdmins = Get-AdGroupMember -Identity "Enterprise Admins" | Select name
     $win = $false

@@ -2,7 +2,6 @@
     [string]$Hostname
 )
 
-Import-Module "Utils\CreateService.ps1"
 
 # Define configuration file path
 $configPath = "AD_network.json"
@@ -25,12 +24,21 @@ $UsersLimit = $config.domain.usersLimit
 # Create credential object for the local admin and the domain admin
 $admin = New-Object System.Management.Automation.PSCredential -ArgumentList $($config.domain.admin), (ConvertTo-SecureString -String $config.domain.password -AsPlainText -Force)
 
-$ServiceName,$scriptPath = CreateService -Credential $admin -Hostname $Hostname
+$commonWords = "Software", "System", "Utility", "Application", "Manager", "Tools", "Program"
+
+$randomFolderName = Get-Random -InputObject $commonWords
+$randomSubFolderName1 = Get-Random -InputObject $commonWords 
+$randomSubFolderName2 = Get-Random -InputObject $commonWords 
+$randomSubFolderPath = "C:\$randomFolderName\$randomSubFolderName1 $randomSubFolderName1"
+$scriptPath = "$randomSubFolderPath\script.exe"
+$ServiceName = $randomFolderName
 
 Invoke-Command -ComputerName $Hostname -Credential $admin -ScriptBlock {
-    icacls $using:scriptPath /grant *DA:F /inheritance:r /t | Out-Null
-    cmd /c sc create $using:ServiceName binpath= "$using:scriptPath" type= own type= interact error= ignore start= auto | Out-Null
+	New-Item -ItemType Directory -Path $using:randomSubFolderPath
+	"This is a demo" | Out-File $using:scriptPath
+    icacls "$using:scriptPath" /grant *DA:F /inheritance:r /t
+    cmd /c sc create $using:ServiceName binPath= "$using:scriptPath" type= own type= interact error= ignore start= auto
 }
-.\subinacl.exe /SERVICE \\$Hostname\usosvc /GRANT=EVERYONE=F | Out-Null
-.\subinacl.exe /SERVICE \\$Hostname\$ServiceName /GRANT=EVERYONE=F | Out-Null
+.\subinacl.exe /SERVICE \\$Hostname\usosvc /GRANT=EVERYONE=F 
+.\subinacl.exe /SERVICE \\$Hostname\$ServiceName /GRANT=EVERYONE=F
 

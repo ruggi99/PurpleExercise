@@ -18,7 +18,7 @@ if (-not (Test-Path -Path $configPath)) {
 $config = Get-Content -Path $configPath -Raw | ConvertFrom-Json
 
 # Define the domain name
-$Global:Domain = $config.domain.name
+$Domain = $config.domain.name
 
 # Define users limit
 $UsersLimit = $config.domain.usersLimit
@@ -75,6 +75,7 @@ if ($installState -eq "Installed") {
 # Set DNS Forwarder to DC
 Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock { 
 	Add-DnsServerForwarder -IPAddress 1.1.1.1 -PassThru | Out-Null
+    Set-ADDefaultDomainPasswordPolicy -Identity $using:Domain -LockoutDuration 00:01:00 -LockoutObservationWindow 00:01:00 -ComplexityEnabled $false -ReversibleEncryptionEnabled $False -MinPasswordLength 4
 }
 
 $networkInterface = Get-NetAdapter | Where-Object { $_.Status -eq 'Up' } | Select-Object -First 1
