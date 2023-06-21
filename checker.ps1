@@ -15,6 +15,9 @@ $domain = $config.domain.name
 
 $points = 0
 
+$win_condition = $config.win_condition
+
+
 for ($i=0; $i -lt $config.assets.Count; $i=$i+1 ) {
     $asset = $config.assets[$i]
     $hostname = "$($asset.hostname).$($domain)"
@@ -30,12 +33,21 @@ if (-not $test.ProtocolAddress) {
     $points += $asset.value
 }
 
-Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock { 
+$response = Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock { 
+    $enterpriseAdmins = Get-AdGroupMember -Identity "Enterprise Admins" | Select name
+    $win = $false
+    foreach($EA in $enterpriseAdmins) {
+        $user = Get-ADUser -Identity $EA.Name 
+        if ($user.Enabled -eq $true -and $user.Name -eq $using:win_condition){
+            $win = $true
+        }
+    }
+
     $domainAdmins = Get-AdGroupMember -Identity "Domain Admins" | Select name
     foreach($DA in $domainAdmins) {
         $user = Get-ADUser -Identity $DA.name | Select Enabled
         if (-not $user.Enabled) {
-            $points += $config.domain.valueDomainAdmin
+            $points += $using:config.domain.valueDomainAdmin
         }
     }
 
@@ -43,20 +55,29 @@ Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock
     foreach($EA in $enterpriseAdmins) {
         $user = Get-ADUser -Identity $EA.name | Select Enabled
         if (-not $user.Enabled) {
-            $points += $config.domain.valueEnterpriseAdmin
+            $points += $using:config.domain.valueEnterpriseAdmin
         }
     }
 
-    # No worka bene
+   
     $users = Get-AdUser -Filter * -Properties MemberOf
+    $ListUsers=@()
     foreach ($user in $users) { 
-        $memberOf = $user.MemberOf # Verifica se l'utente non è membro dei gruppi Domain Admins e Domain Enterprise Admins
-        if ($memberOf -notlike "*CN=Domain Admins*" -and $memberOf -notlike "*CN=Enterprise Admins*" -and -not $user.Enabled) {
-            $points += $config.domain.valueSimpleUser
-        } else {
-            Write-Host $user
-            Write-Host $user.Enabled
-            Write-Host $memberOf
+        if ($user -like "*Guest*" -or $user -like "*krbtgt*") {
+            continue
         }
+        $memberOf = $user.MemberOf 
+        $joinMemberOf = $memberOf -join ","
+        if ($joinmemberOf -notlike "*CN=Domain Admins*" -and $joinmemberOf -notlike "*CN=Enterprise Admins*" -and -not $user.Enabled) {
+           $points += $using:config.domain.valueSimpleUser
+           $ListUsers += $user
+        } 
+    }
+    # Write-Host $ListUsers
+    Return @{
+        points = $points
+        win = $win
     }
 }
+
+$response | ConvertTo-Json
