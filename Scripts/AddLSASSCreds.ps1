@@ -1,15 +1,16 @@
 param(
-    [string]$Hostname
+    [string]$Hostnames
 )
 
-    Import-Module "Utils\Add-ADUser.ps1"
+    Import-Module ".\Add-ADUser.ps1"
 	# AD INITIALIZATION
 	# Define configuration file path
-	$configPath = "AD_network.json"
+	$configPath = ".\AD_network.json"
 
 	# Check configuration file path	
+# Configuration file not found
 	if (-not (Test-Path -Path $configPath)) {
-  	# Configuration file not found
+  	
   	throw "Configuration file not found. Check file path."  	
 }
 
@@ -17,7 +18,7 @@ param(
 	$config = Get-Content -Path $configPath -Raw | ConvertFrom-Json
 
 	# Define the domain name
-	$Global:Domain = $config.domain.name
+	$Domain = $config.domain.name
 
 	# Define users limit
 	$UsersLimit = $config.domain.usersLimit
@@ -30,22 +31,38 @@ param(
 
     $random_asset = Get-Random -InputObject $assets
 
-
+    # valutare se l'asset scelto è proprio il DC, in tal caso type deve essere 1
     $type = Get-Random -Minimum 0 -Maximum 3
 
-    $username, $password= AddADUser
+
+    #query DC da DNSHostName
+    $isDomainController = Get-ADDomainController -Discover -DomainName $random_asset.DNSHostName
+
+    Write-Host $random_asset
+    #compara gli oggetti
+    if($random_asset -eq $isDomainController)
+    {
+        $type=1;
+        Write-Host "is DC"
+    }
+    else
+    {
+        Write-Host "not DC"
+    }
+
+    $username, $password = AddADUser
     
     switch($type){
         0{
             Invoke-Command -ComputerName $Hostname -Credential $admin -ScriptBlock{
                 #$groupsid = (Get-WMIObject -Class Win32_Group -Filter "LocalAccount=True and SID='S-1-5-domain-500'").Name
-                cmd /c net localgroup "Administrators" $using:username /add | Out-Null
+                cmd /c net localgroup "Administrators" $using:username /add | Out-String
             }
         }
         1{
             Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock{
                 #$groupsid = (Get-WMIObject -Class Win32_Group -Filter "LocalAccount=True and SID='S-1-5-domain-512'").Name
-                cmd /c net localgroup "Domain Admins" $using:username /add | Out-Null
+                cmd /c net localgroup "Administrators" $using:username /add | Out-String
             }
         }
 
@@ -54,22 +71,22 @@ param(
     Invoke-Command -ComputerName $Hostname -Credential $admin -ScriptBlock {
     	    Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -value 0
     	    $rdp = (Get-WMIObject -Class Win32_Group -Filter "LocalAccount=True and SID='S-1-5-32-555'").Name
-            $users = Get-LocalUser
-            $randomUser = $users | Get-Random
-            cmd /c net localgroup "$rdp" $randomUser /add | Out-Null
+            cmd /c net localgroup "$rdp" $using:username /add | Out-Null
 
     }
 
+   $user_cred = New-Object System.Management.Automation.PSCredential -ArgumentList $username, (ConvertTo-SecureString -String $password -AsPlainText -Force)
 
-    Invoke-Command -ComputerName $random_asset -Credential $admin -ScriptBlock {
+
+   Invoke-Command -ComputerName "$($random_asset).$($domain)" -Credential $user_cred -ScriptBlock {
 
 
             $path = "HKLM:\SOFTWARE\Microsoft\Terminal Server Client" 
             $key = "AuthenticationLevelOverride" 
             $value = 0 
-            New-ItemProperty -Path $path -Name $key -Value $value -PropertyType DWORD -Force 
+            New-ItemProperty -Path $path -Name $key -Value $value -PropertyType DWORD -Force | Out-Null
 
-             cmdkey /generic:$using:Hostname /user:$using:username /pass:$using:password
+            cmdkey /generic:$using:Hostname /user:$using:username /pass:$using:password
 
             Start-Process -FilePath "mstsc.exe" -ArgumentList "/v:$using:Hostname /noConsentPrompt" -WindowStyle "Hidden"
 
