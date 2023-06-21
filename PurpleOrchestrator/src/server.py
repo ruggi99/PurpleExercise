@@ -1,9 +1,10 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request as flask_request
 from pathlib import Path
 from time import time as time_time, sleep as time_sleep
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict as dt_asdict
 from threading import Thread
 from subprocess import check_output as sp_check_output
+from json import loads as json_loads, decoder as json_decoder
 
 
 ##############################################
@@ -32,40 +33,47 @@ class Server():
         if self.config is None:
             raise ValueError("config is None")
 
-        self.game_state = GameState(points = self.config["points"])
+        self.game_state = GameState(max_seconds_available = self.config["max_seconds_available"], points = self.config["points"], initial_points = self.config["points"])
 
         self.spawner_thread = GameThread()
         self.checker_thread = GameThread()
         return
     
     
-    def run() -> None:
-        self.spawner_thread.thread = Thread(target = _execute_spawner, args = (self, ), daemon = True)
-        self.checker_thread.thread = Thread(target = _execute_checker, args = (self, ), daemon = True)
+    def run(self) -> None:
+        self.spawner_thread.thread = Thread(target = self._execute_spawner, daemon = True)
+        self.checker_thread.thread = Thread(target = self._execute_checker, daemon = True)
+
+        self.app.add_url_rule("/", view_func=self.index, methods = ["GET"])
+        self.app.add_url_rule("/start", view_func=self.start, methods = ["POST"])
+        self.app.add_url_rule("/data.json", view_func=self.data, methods = ["GET"])
+        self.app.add_url_rule("/red_team", view_func=self.red_team, methods = ["GET"])
 
         self.app.run(host = SERVER_IP, port = SERVER_PORT, debug = True)
         return
 
 
-    def _update_game_state(state : dict) -> None:
+    def _update_game_state(self, state : dict) -> None:
         # Current points
-        self.game_state.points -= state.points
+        self.game_state.points -= state["points"]
         
         # End game
         if self.game_state.points < 0:
             self.game_state.game_ended = True
 
         else:
-            self.game_state.game_ended = state.game_ended
+            self.game_state.game_ended = state["game_ended"]
         
         # Terminate threads if game ended
         if self.game_state.game_ended:
-            self.spawner_up = False
-            self.checker_up = False
+            self.spawner_thread.up = False
+            self.checker_thread.up = False
+            self.spawner_thread.thread.join()
+            self.checker_thread.thread.join()
         return
 
     
-    def _execute_spawner() -> None:
+    def _execute_spawner(self) -> None:
         while self.spawner_thread.up:
             command = f"powershell -ep bypass {VULN_SPAWNER_PATH}"
             _ = sp_check_output(command, cwd = "../../", text = True) # We should check this
@@ -75,9 +83,9 @@ class Server():
         return
 
 
-    def _execute_checker() -> None:
+    def _execute_checker(self) -> None:
         while self.checker_thread.up:
-            command = f"powershell -ep bypass {CHECKER_PATH}"
+            command = f"powershell -ep bypass {VULN_CHECKER_PATH}"
             response = sp_check_output(command, cwd = "../../", text = True) # We should check t
             
             try:
@@ -86,10 +94,12 @@ class Server():
 
             except json_decoder.JSONDecodeError as e:
                 pass # need to handle this case
+
+            time_sleep(self.config["checkerTimeInterval"])
         return
 
 
-    def _load_json(json_path : str) -> dict | None:
+    def _load_json(self, json_path : str) -> dict | None:
         # Check json existance
         if not Path(json_path).exists():
             return None
@@ -112,44 +122,43 @@ class Server():
     ##############################################
     #                  ENDPOINTS                 #
     ##############################################
-    @self.app.route("/start", methods = ["POST"])
-    def start():
+    def start(self) -> int:
         if self.game_state.start_time != 0:
-            return
+            return "401"
 
-        if "password" not in request.form:
-            return
+        print(flask_request.form)
+        if "password" not in flask_request.form:
+            return "402"
 
-        if request.form["password"] == START_PASSWORD:
+        if flask_request.form["password"] == START_PASSWORD:
             # Set start time
             self.game_state.start_time = time_time()
             
             # Threads
-            self.spawner_thread.up = True
-            self.spawner_thread.thread.start()
+            # self.spawner_thread.up = True
+            # self.spawner_thread.thread.start()
 
-            self.checker_thread.up = True
-            self.checker_thread.thread.start()
+            # self.checker_thread.up = True
+            # self.checker_thread.thread.start()
 
-        return
+            return "200"
+
+        return "403"
 
 
-    @self.app.route("/", methods = ["GET"])
-    def index():
-        return render_template("index.html")
+    def index(self) -> str:
+        return render_template("index.html", data=self.config)
     
 
-    @self.app.route("/data.json", methods = ["GET"])
-    def data() -> dict:
-        return dataclasses.asdict(game_state)
+    def data(self) -> dict:
+        return dt_asdict(self.game_state)
 
 
-    @self.app.route("/red_team", methods = ["GET"])
-    def red_team():
-        if "password" not in request.form:
+    def red_team(self) -> str:
+        if "password" not in flask_request.form:
             return
 
-        if request.form["password"] != RED_PASSWORD:
+        if flask_request.form["password"] != RED_PASSWORD:
             return
 
         win_condition = self.config["win_condition"]
@@ -164,6 +173,8 @@ class Server():
 @dataclass
 class GameState:
     points : int
+    initial_points : int
+    max_seconds_available: int
     game_ended : bool = False
     start_time : float = 0
 

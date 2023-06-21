@@ -10,50 +10,52 @@
     <div class="box">
         <p class="score"> Score: <span id="current_score"></span>/<span id="max_score"></span></p>
         <p class="progress"> Progress: <span id="current_percentage"></span>%</p>
-        <p class="time">Time remained: <span id="time_remained">{{ data.max_seconds_available }}</span> seconds.</p>
+        <p class="win_condition"> Win condition: <span id="win_condition"></span>%</p>
+        <p class="time">Time remained: <span id="time_remained"></span> seconds.</p>
         <div class="progress-container" style="margin-bottom:10px">
-            <div id="progress" class="progress-full">
-                <div class="progress-value"></div>
+            <div class="progress-full">
+                <div id="progress" class="progress-value"></div>
             </div>
         </div>
     </div>
 </body>
 
 <script>
-    let start_time = 0
-    let max_seconds_available = 0
+    let start_time
+    let max_seconds_available
+    let win_condition
     let fetchDataIntervalSeconds = 10000
     let updateTimeIntervalSeconds = 800
 
     async function initData() {
-        const response = await fetch("/data.json")
-        const data = await response.json()
-
-        document.getElementById("max_score").innerText = data.initial_points;
-    }
-
-    async function fetchData() {
-        const response = await fetch("/data.json")
+        const response = await fetch("/static_data.json")
         const data = await response.json()
 
         start_time = data.start_time
         max_seconds_available = data.max_seconds_available
+        win_condition = data.win_condition
 
-        let percentage = data.points * 100 / data.initial_points
+        document.getElementById("max_score").innerText = data.max_score;
+        document.getElementById("win_condition").innerText = data.win_condition * 100;
+        document.getElementById("progress").max = win_condition * 100
+    }
 
-        document.getElementById("current_score").innerText = data.points;
-        document.getElementById("current_percentage").innerText = percentage;
-        document.getElementById("progress").children[0].style.width = (data.points * 100 / data.initial_points) + "%"
+    async function fetchData() {
+        const response = await fetch("/score.json")
+        const score = await response.json()
 
-        if (percentage > 60) {
-            document.getElementsByClassName("score")[0].dataset.color = "green";
-            document.getElementById("progress").dataset.color = "green"
-        } else if (percentage > 20) {
-            document.getElementsByClassName("score")[0].dataset.color = "yellow";
-            document.getElementById("progress").dataset.color = "yellow"
+        document.getElementById("current_score").innerText = score.current;
+        document.getElementById("current_percentage").innerText = score.percentage * 100;
+        document.getElementById("progress").style.width = (score.percentage / win_condition * 100) + "%"
+
+        if (score.percentage > win_condition) {
+            document.getElementsByClassName("score")[0].classList.add("green")
+            document.getElementById("progress").style.backgroundColor = "green"
+            document.getElementById("progress").parentElement.style.borderColor = "green"
         } else {
-            document.getElementsByClassName("score")[0].dataset.color = "red";
-            document.getElementById("progress").dataset.color = "red"
+            document.getElementsByClassName("score")[0].classList.remove("green")
+            document.getElementById("progress").style.backgroundColor = "white"
+            document.getElementById("progress").parentElement.style.borderColor = "white"
         }
     }
 
@@ -70,9 +72,6 @@
     }
 
     function updateTime() {
-        if (start_time == 0) {
-            return
-        }
         now = new Date().getTime()
         seconds_elapsed = now / 1000 - start_time
         time_remained = max_seconds_available - seconds_elapsed
@@ -87,7 +86,6 @@
         setInterval(fetchData, fetchDataIntervalSeconds)
         setInterval(updateTime, updateTimeIntervalSeconds)
     })
-
 
 </script>
 

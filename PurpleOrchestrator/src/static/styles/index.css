@@ -1,10 +1,11 @@
 html {
-    /* min-height: 100%; */
+    min-height: 100%;
     font-family: Arial;
 }
 
 body {
-    /* min-height: 100%; */
+    min-height: 100%;
+    padding: 0.1px;
     margin: 0;
     background-image: url("/static/images/background.jpg");
     background-repeat: no-repeat;
@@ -46,10 +47,6 @@ body {
     font-size: 2.5rem;
 }
 
-.green {
-    color: green;
-}
-
 .progress-container {
     position: relative;
     width: 100%;
@@ -69,4 +66,28 @@ body {
     width: 30%;
     height: 100%;
     background-color: white;
+}
+
+.progress-full[data-color=green] {
+    border-color: green;
+}
+
+.progress-full[data-color=green] > * {
+    background-color: green;
+}
+
+.progress-full[data-color=yellow] {
+    border-color: yellow;
+}
+
+.progress-full[data-color=yellow] > * {
+    background-color: yellow;
+}
+
+.progress-full[data-color=red] {
+    border-color: red;
+}
+
+.progress-full[data-color=red] > * {
+    background-color: red;
 }
