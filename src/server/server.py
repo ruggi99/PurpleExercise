@@ -10,15 +10,10 @@ from json import loads as json_loads, decoder as json_decoder
 ##############################################
 #               GLOBAL VARIABLES             #
 ##############################################
-CONFIG_JSON_PATH  = "../../AD_network.json"
-VULN_SPAWNER_PATH = "../../spawner.ps1"
-VULN_CHECKER_PATH = "../../checker.ps1"
+CONFIG_JSON_PATH  = "../config.json"
+VULN_SPAWNER_PATH = "../scripts/spawner.ps1"
+VULN_CHECKER_PATH = "../scripts/checker.ps1"
 
-SERVER_IP   = "0.0.0.0"
-SERVER_PORT = 5000
-
-START_PASSWORD = "abcd"
-RED_PASSWORD   = "michiamovirgolasonoungattino" 
 
 
 ##############################################
@@ -27,35 +22,50 @@ RED_PASSWORD   = "michiamovirgolasonoungattino"
 class Server():
     def __init__(self) -> None:
         # Create flask app
-        self.app = Flask(__name__)
+        self.APP = Flask(__name__)
         
         # Load config
-        self.config = self._load_json(CONFIG_JSON_PATH)
+        res = self._load_json(CONFIG_JSON_PATH)
         
-        if self.config is None:
-            raise ValueError("config is None")
+        if not res["status"]:
+            raise ValueError(res["error"])
         
-        # Init game state
-        self.game_state = GameState(points = self.config["points"],
-                                    initial_points = self.config["points"],
-                                    max_seconds_available = self.config["max_seconds_available"]
+        self.CONFIG = res["res"]
+        
+        # Check server config
+        res = self._check_config()
+
+        if not res["status"]:
+            raise ValueError(res["error"])
+        
+        
+        # Init server info
+        self.SERVER_IP = self.CONFIG["server"]["ip"]
+        self.SERVER_PORT = self.CONFIG["server"]["port"]
+
+        self.START_PASSWORD = self.CONFIG["server"]["start_password"]
+        self.RED_PASSWORD   = self.CONFIG["server"]["red_password"]
+
+        self.game_state = GameState(points = self.CONFIG["max_points"],
+                                    initial_points = self.CONFIG["max_points"],
+                                    max_seconds_available = self.CONFIG["max_seconds_available"]
                           )
         return
     
-    
+
     def run(self) -> None:
         self._add_endpoints()
         self._create_threads()
 
-        self.app.run(host = SERVER_IP, port = SERVER_PORT, debug = True)
+        self.APP.run(host = self.SERVER_IP, port = self.SERVER_PORT, debug = True)
         return
 
 
     def _add_endpoints(self) -> None:
-        self.app.add_url_rule("/start", view_func = self.start, methods = ["POST"])
-        self.app.add_url_rule("/", view_func = self.index, methods = ["GET"])
-        self.app.add_url_rule("/data.json", view_func = self.data, methods = ["GET"])
-        self.app.add_url_rule("/red_team", view_func  =self.red_team, methods = ["GET"])
+        self.APP.add_url_rule("/start", view_func = self.start, methods = ["POST"])
+        self.APP.add_url_rule("/", view_func = self.index, methods = ["GET"])
+        self.APP.add_url_rule("/data.json", view_func = self.data, methods = ["GET"])
+        self.APP.add_url_rule("/red_team", view_func = self.red_team, methods = ["GET"])
         return
 
 
@@ -109,7 +119,7 @@ class Server():
             command = f"powershell -ep bypass {VULN_SPAWNER_PATH}"
             _ = sp_check_output(command, cwd = "../../", text = True) # We should check this
 
-            time_sleep(self.config["spawnerTimeInterval"])
+            time_sleep(self.CONFIG["spawner_time_interval"])
 
         return
 
@@ -126,14 +136,17 @@ class Server():
             except json_decoder.JSONDecodeError as e:
                 pass # need to handle this case
 
-            time_sleep(self.config["checkerTimeInterval"])
+            time_sleep(self.CONFIG["checker_time_interval"])
         return
 
 
-    def _load_json(self, json_path : str) -> dict | None:
+    def _load_json(self, json_path : str) -> dict:
+        res = {"status" : False, "error" : "", "res" : ""}
+
         # Check json existance
         if not Path(json_path).is_file():
-            return None
+            res["error"] = "config file does not exist"
+            return res
 
         # Read json
         with open(json_path, "r") as fd:
@@ -141,10 +154,47 @@ class Server():
         
         # Parse json
         try:
-            return json_loads(json_file)
+            res["res"] = json_loads(json_file)
+            res["status"] = True
+            return res
 
         except json_decoder.JSONDecodeError as e:
-            return None
+            res["error"] = "invalid config file format"
+            return res
+
+
+    def _check_config(self) -> dict:
+        res = {"status" : False, "error" : ""}
+
+        # Check server parameters
+        if not "server" in self.CONFIG:
+            res["error"] = "missing server parameter"
+            return res
+        
+        server_parameters = ["ip", "port", "start_password", "red_password"]
+
+        for parameter in server_parameters:
+            if parameter not in self.CONFIG["server"]:
+                res["error"] = f"missing {parameter} parameter in server field"
+                return res
+        
+        # Check lab parameters
+        if not "lab" in self.CONFIG:
+            res["error"] = "missing lab parameter"
+            return res
+        
+        lab_parameters = ["red_target", "max_points", "max_seconds_available",
+                          "spawner_time_interval", "checker_time_interval"]
+        
+
+        for parameter in lab_parameters:
+            if parameter not in self.CONFIG["lab"]:
+                res["error"] = f"missing {parameter} parameter in lab field"
+                return res
+        
+        # No errors
+        res["status"] = True
+        return res
 
 
     ##############################################
@@ -157,7 +207,7 @@ class Server():
         if "password" not in flask_request.form:
             return "Error"
 
-        if flask_request.form["password"] == START_PASSWORD:
+        if flask_request.form["password"] == self.START_PASSWORD:
             # Set start time
             self.game_state.start_time = time_time()
             
@@ -170,7 +220,7 @@ class Server():
 
 
     def index(self) -> str:
-        return render_template("index.html", data = self.config)
+        return render_template("index.html")
     
 
     def data(self) -> dict:
@@ -181,11 +231,11 @@ class Server():
         if "password" not in flask_request.form:
             return "Error"
 
-        if flask_request.form["password"] != RED_PASSWORD:
+        if flask_request.form["password"] != self.RED_PASSWORD:
             return "Error"
 
-        win_condition = self.config["win_condition"]
-        return render_template("red_team.html", win_condition)
+        red_target = self.CONFIG["red_target"]
+        return render_template("red_team.html", red_target)
 
 
 
@@ -198,8 +248,8 @@ class GameState:
     points : int
     initial_points : int
     max_seconds_available: int
-    game_ended : bool = False
     start_time : float = 0
+    game_ended : bool = False
 
 
 @dataclass
