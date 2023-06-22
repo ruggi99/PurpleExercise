@@ -15,7 +15,7 @@ VULN_SPAWNER_PATH = "../scripts/spawner.ps1"
 VULN_CHECKER_PATH = "../scripts/checker.ps1"
 VULN_SPAWNER_CWD = "../"
 VULN_CHECKER_CWD = "../"
-
+GAME_STATE_PATH = "../game_state.json"
 
 
 ##############################################
@@ -129,14 +129,20 @@ class Server():
     def _execute_checker(self) -> None:
         while self.checker_thread.up:
             command = f"powershell -ep bypass {VULN_CHECKER_PATH}"
-            response = sp_check_output(command, cwd = VULN_CHECKER_CWD, text = True) # We should check this
+            _ = sp_check_output(command, cwd = VULN_CHECKER_CWD, text = True) # We should check this
             
             try:
-                response_json = json_loads(response)
-                self._update_game_state(response_json)
+                response_json = json_loads(GAME_STATE_PATH)
 
-            except json_decoder.JSONDecodeError as e:
-                pass # need to handle this case
+            except json_decoder.JSONDecodeError as error:
+                print(f"Formatter error while loading the game_state.json: {error}")
+                continue
+
+            if ("points" not in response_json) or ("game_ended" not in response_json):
+                print("Missing key in game_state.json... Required keys: points, game_ended")
+                continue
+            
+            self._update_game_state(response_json)
 
             time_sleep(self.CONFIG["lab"]["checker_time_interval"])
         return
