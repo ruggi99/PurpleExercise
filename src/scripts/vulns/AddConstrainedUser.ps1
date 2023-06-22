@@ -5,7 +5,7 @@ param(
      )
 
     Import-Module ".\scripts\utils\constants.ps1"
-    Import-Module "$($vulns_path)Add-ADUser.ps1"
+    Import-Module "$($utils_path)Add-ADUser.ps1"
 
 	# Define configuration file path
 	$configPath = ".\AD_network.json"

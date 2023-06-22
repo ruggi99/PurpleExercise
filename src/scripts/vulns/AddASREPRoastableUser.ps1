@@ -20,7 +20,7 @@ $config = Get-Content -Path $configPath -Raw | ConvertFrom-Json
 $admin = New-Object System.Management.Automation.PSCredential -ArgumentList $($config.domain.admin), (ConvertTo-SecureString -String $config.domain.password -AsPlainText -Force)
     
 Import-Module ".\scripts\utils\constants.ps1"
-Import-Module "$($vulns_path)Add-ADUser.ps1"
+Import-Module "$($utils_path)Add-ADUser.ps1"
 
 # Add new kerberoastable users 
 for ($i=0; $i -lt $limit; $i=$i+1 ) {

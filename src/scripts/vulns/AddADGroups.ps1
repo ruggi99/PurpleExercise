@@ -24,7 +24,7 @@
 	# Create credential object for the local admin and the domain admin
 	$admin = New-Object System.Management.Automation.PSCredential -ArgumentList $($config.domain.admin), (ConvertTo-SecureString -String $config.domain.password -AsPlainText -Force)
 
-    Import-Module "$($vulns_path)Add-ADUser.ps1"
+    Import-Module "$($utils_path)Add-ADUser.ps1"
     
     Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock { 
 	    for ($i = 0; $i -le $using:limit; $i++){

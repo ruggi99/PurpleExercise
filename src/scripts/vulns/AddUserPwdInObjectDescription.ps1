@@ -18,7 +18,7 @@
 	$admin = New-Object System.Management.Automation.PSCredential -ArgumentList $($config.domain.admin), (ConvertTo-SecureString -String $config.domain.password -AsPlainText -Force)
     
     Import-Module ".\scripts\utils\constants.ps1"
-    Import-Module "$($vulns_path)Add-ADUser.ps1"
+    Import-Module "$($utils_path)Add-ADUser.ps1"
     for ($i = 0; $i -lt $limit; $i++){
         $SamAccountName, $password = AddADUser
         Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock {

@@ -3,7 +3,7 @@
      )
 
 Import-Module ".\scripts\utils\constants.ps1"
-Import-Module "$($vulns_path)Add-ADUser.ps1"
+Import-Module "$($utils_path)Add-ADUser.ps1"
 
 # AD INITIALIZATION
 # Define configuration file path
