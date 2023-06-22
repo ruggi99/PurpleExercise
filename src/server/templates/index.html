@@ -1,94 +1,16 @@
-<html>
-
-<head>
-    <title>Questa è una prova</title>
-    <link href="/static/styles/index.css" rel="stylesheet" />
-</head>
-
-<body>
-    <div class="menu"></div>
-    <div class="box">
-        <p class="score"> Score: <span id="current_score"></span>/<span id="max_score"></span></p>
-        <p class="progress"> Progress: <span id="current_percentage"></span>%</p>
-        <p class="time">Time remained: <span id="time_remained">{{ data.max_seconds_available }}</span> seconds.</p>
-        <div class="progress-container" style="margin-bottom:10px">
-            <div id="progress" class="progress-full">
-                <div class="progress-value"></div>
-            </div>
-        </div>
-    </div>
-</body>
-
-<script>
-    let start_time = 0
-    let max_seconds_available = 0
-    let fetchDataIntervalSeconds = 10000
-    let updateTimeIntervalSeconds = 800
-
-    async function initData() {
-        const response = await fetch("/data.json")
-        const data = await response.json()
-
-        document.getElementById("max_score").innerText = data.initial_points;
-    }
-
-    async function fetchData() {
-        const response = await fetch("/data.json")
-        const data = await response.json()
-
-        start_time = data.start_time
-        max_seconds_available = data.max_seconds_available
-
-        let percentage = data.points * 100 / data.initial_points
-
-        document.getElementById("current_score").innerText = data.points;
-        document.getElementById("current_percentage").innerText = percentage;
-        document.getElementById("progress").children[0].style.width = (data.points * 100 / data.initial_points) + "%"
-
-        if (percentage > 60) {
-            document.getElementsByClassName("score")[0].dataset.color = "green";
-            document.getElementById("progress").dataset.color = "green"
-        } else if (percentage > 20) {
-            document.getElementsByClassName("score")[0].dataset.color = "yellow";
-            document.getElementById("progress").dataset.color = "yellow"
-        } else {
-            document.getElementsByClassName("score")[0].dataset.color = "red";
-            document.getElementById("progress").dataset.color = "red"
-        }
-    }
-
-    String.prototype.toHHMMSS = function () {
-        let sec_num = parseInt(this, 10); // don't forget the second param
-        let hours = Math.floor(sec_num / 3600);
-        let minutes = Math.floor((sec_num - (hours * 3600)) / 60);
-        let seconds = sec_num - (hours * 3600) - (minutes * 60);
-
-        if (hours < 10) { hours = "0" + hours; }
-        if (minutes < 10) { minutes = "0" + minutes; }
-        if (seconds < 10) { seconds = "0" + seconds; }
-        return hours + ':' + minutes + ':' + seconds;
-    }
-
-    function updateTime() {
-        if (start_time == 0) {
-            return
-        }
-        now = new Date().getTime()
-        seconds_elapsed = now / 1000 - start_time
-        time_remained = max_seconds_available - seconds_elapsed
-        document.getElementById("time_remained").innerText = time_remained.toString().toHHMMSS()
-    }
-
-
-    initData().then(() => {
-        fetchData()
-        updateTime()
-
-        setInterval(fetchData, fetchDataIntervalSeconds)
-        setInterval(updateTime, updateTimeIntervalSeconds)
-    })
-
-
-</script>
-
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PurpleExercise</title>
+    <script type="module" crossorigin src="/static/assets/main-9ca57abd.js"></script>
+    <link rel="modulepreload" crossorigin href="/static/assets/index-6187c0a3.js">
+    <link rel="stylesheet" href="/static/assets/index-d95e4050.css">
+  </head>
+  <body>
+    <div id="app"></div>
+    
+  </body>
 </html>

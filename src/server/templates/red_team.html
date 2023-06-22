@@ -1,92 +1,16 @@
-<html>
-
-<head>
-    <title>Questa è una prova</title>
-    <link href="/static/styles/index.css" rel="stylesheet" />
-</head>
-
-<body>
-    <div class="menu"></div>
-    <div class="box">
-        <p class="score"> Score: <span id="current_score"></span>/<span id="max_score"></span></p>
-        <p class="progress"> Progress: <span id="current_percentage"></span>%</p>
-        <p class="win_condition"> Win condition: <span id="win_condition"></span>%</p>
-        <p class="time">Time remained: <span id="time_remained"></span> seconds.</p>
-        <div class="progress-container" style="margin-bottom:10px">
-            <div class="progress-full">
-                <div id="progress" class="progress-value"></div>
-            </div>
-        </div>
-    </div>
-</body>
-
-<script>
-    let start_time
-    let max_seconds_available
-    let win_condition
-    let fetchDataIntervalSeconds = 10000
-    let updateTimeIntervalSeconds = 800
-
-    async function initData() {
-        const response = await fetch("/static_data.json")
-        const data = await response.json()
-
-        start_time = data.start_time
-        max_seconds_available = data.max_seconds_available
-        win_condition = data.win_condition
-
-        document.getElementById("max_score").innerText = data.max_score;
-        document.getElementById("win_condition").innerText = data.win_condition * 100;
-        document.getElementById("progress").max = win_condition * 100
-    }
-
-    async function fetchData() {
-        const response = await fetch("/score.json")
-        const score = await response.json()
-
-        document.getElementById("current_score").innerText = score.current;
-        document.getElementById("current_percentage").innerText = score.percentage * 100;
-        document.getElementById("progress").style.width = (score.percentage / win_condition * 100) + "%"
-
-        if (score.percentage > win_condition) {
-            document.getElementsByClassName("score")[0].classList.add("green")
-            document.getElementById("progress").style.backgroundColor = "green"
-            document.getElementById("progress").parentElement.style.borderColor = "green"
-        } else {
-            document.getElementsByClassName("score")[0].classList.remove("green")
-            document.getElementById("progress").style.backgroundColor = "white"
-            document.getElementById("progress").parentElement.style.borderColor = "white"
-        }
-    }
-
-    String.prototype.toHHMMSS = function () {
-        let sec_num = parseInt(this, 10); // don't forget the second param
-        let hours = Math.floor(sec_num / 3600);
-        let minutes = Math.floor((sec_num - (hours * 3600)) / 60);
-        let seconds = sec_num - (hours * 3600) - (minutes * 60);
-
-        if (hours < 10) { hours = "0" + hours; }
-        if (minutes < 10) { minutes = "0" + minutes; }
-        if (seconds < 10) { seconds = "0" + seconds; }
-        return hours + ':' + minutes + ':' + seconds;
-    }
-
-    function updateTime() {
-        now = new Date().getTime()
-        seconds_elapsed = now / 1000 - start_time
-        time_remained = max_seconds_available - seconds_elapsed
-        document.getElementById("time_remained").innerText = time_remained.toString().toHHMMSS()
-    }
-
-
-    initData().then(() => {
-        fetchData()
-        updateTime()
-
-        setInterval(fetchData, fetchDataIntervalSeconds)
-        setInterval(updateTime, updateTimeIntervalSeconds)
-    })
-
-</script>
-
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PurpleExercise</title>
+    <script type="module" crossorigin src="/static/assets/red_team-9eca1cc2.js"></script>
+    <link rel="modulepreload" crossorigin href="/static/assets/index-6187c0a3.js">
+    <link rel="stylesheet" href="/static/assets/index-d95e4050.css">
+  </head>
+  <body>
+    <div id="app"></div>
+    
+  </body>
 </html>
