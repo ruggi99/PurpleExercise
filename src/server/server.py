@@ -13,6 +13,8 @@ from json import loads as json_loads, decoder as json_decoder
 CONFIG_JSON_PATH  = "../config.json"
 VULN_SPAWNER_PATH = "../scripts/spawner.ps1"
 VULN_CHECKER_PATH = "../scripts/checker.ps1"
+VULN_SPAWNER_CWD = "../"
+VULN_CHECKER_CWD = "../"
 
 
 
@@ -117,7 +119,7 @@ class Server():
     def _execute_spawner(self) -> None:
         while self.spawner_thread.up:
             command = f"powershell -ep bypass {VULN_SPAWNER_PATH}"
-            _ = sp_check_output(command, cwd = "../../", text = True) # We should check this
+            _ = sp_check_output(command, cwd = VULN_SPAWNER_CWD, text = True) # We should check this
 
             time_sleep(self.CONFIG["lab"]["spawner_time_interval"])
 
@@ -127,7 +129,7 @@ class Server():
     def _execute_checker(self) -> None:
         while self.checker_thread.up:
             command = f"powershell -ep bypass {VULN_CHECKER_PATH}"
-            response = sp_check_output(command, cwd = "../../", text = True) # We should check this
+            response = sp_check_output(command, cwd = VULN_CHECKER_CWD, text = True) # We should check this
             
             try:
                 response_json = json_loads(response)
