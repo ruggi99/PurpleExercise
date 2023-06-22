@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request as flask_request
+from flask import Flask, render_template, request as flask_request, jsonify
 from pathlib import Path
 from time import time as time_time, sleep as time_sleep
 from dataclasses import dataclass, asdict as dt_asdict
@@ -46,9 +46,9 @@ class Server():
         self.START_PASSWORD = self.CONFIG["server"]["start_password"]
         self.RED_PASSWORD   = self.CONFIG["server"]["red_password"]
 
-        self.game_state = GameState(points = self.CONFIG["max_points"],
-                                    initial_points = self.CONFIG["max_points"],
-                                    max_seconds_available = self.CONFIG["max_seconds_available"]
+        self.game_state = GameState(points = self.CONFIG["lab"]["max_points"],
+                                    initial_points = self.CONFIG["lab"]["max_points"],
+                                    max_seconds_available = self.CONFIG["lab"]["max_seconds_available"]
                           )
         return
     
@@ -119,7 +119,7 @@ class Server():
             command = f"powershell -ep bypass {VULN_SPAWNER_PATH}"
             _ = sp_check_output(command, cwd = "../../", text = True) # We should check this
 
-            time_sleep(self.CONFIG["spawner_time_interval"])
+            time_sleep(self.CONFIG["lab"]["spawner_time_interval"])
 
         return
 
@@ -136,7 +136,7 @@ class Server():
             except json_decoder.JSONDecodeError as e:
                 pass # need to handle this case
 
-            time_sleep(self.CONFIG["checker_time_interval"])
+            time_sleep(self.CONFIG["lab"]["checker_time_interval"])
         return
 
 
@@ -224,7 +224,9 @@ class Server():
     
 
     def data(self) -> dict:
-        return dt_asdict(self.game_state)
+        response = jsonify(dt_asdict(self.game_state))
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response
 
 
     def red_team(self) -> str:
@@ -234,7 +236,7 @@ class Server():
         if flask_request.form["password"] != self.RED_PASSWORD:
             return "Error"
 
-        red_target = self.CONFIG["red_target"]
+        red_target = self.CONFIG["lab"]["red_target"]
         return render_template("red_team.html", red_target)
 
 
