@@ -1,4 +1,4 @@
-// ts-ignore-errors
+// @ts-nocheck
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { resolve } from "path";
