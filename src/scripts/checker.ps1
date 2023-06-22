@@ -80,11 +80,11 @@ $response = Invoke-Command -ComputerName $config.domain.dcip -Credential $admin 
     # Write-Host $ListUsers
     Return @{
         points = $points
-        win = $win
+        game_ended = $win
     }
 }
 
 $response.PsObject.Properties.Remove("PSComputerName")
 $response.PsObject.Properties.Remove("RunspaceId")
 $response.PsObject.Properties.Remove("PSShowComputerName")
-$response | ConvertTo-Json | Out-File "points.json"
+$response | ConvertTo-Json | Out-File "game_state.json"
