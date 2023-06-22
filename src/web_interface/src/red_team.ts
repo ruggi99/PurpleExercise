@@ -1,7 +1,7 @@
 import './app.css'
-import App from './App.svelte'
+import RedTeam from './RedTeam.svelte'
 
-const app = new App({
+const app = new RedTeam({
   target: document.getElementById('app'),
 })
 
