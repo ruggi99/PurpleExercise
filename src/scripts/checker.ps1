@@ -87,4 +87,6 @@ $response = Invoke-Command -ComputerName $config.domain.dcip -Credential $admin 
 $response.PsObject.Properties.Remove("PSComputerName")
 $response.PsObject.Properties.Remove("RunspaceId")
 $response.PsObject.Properties.Remove("PSShowComputerName")
-$response | ConvertTo-Json | Out-File "game_state.json"
+$response | ConvertTo-Json | Out-File -Encoding utf8 "game_state.json"
+
+return 0

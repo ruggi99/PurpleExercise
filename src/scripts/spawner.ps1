@@ -2,6 +2,8 @@
     [string]$limit    
 )
 
+Import-Module ".\scripts\utils\constants.ps1"
+
 # Define configuration file path
 $configPath = "AD_network.json"
 
@@ -24,11 +26,13 @@ $assets = Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -S
 
 for ($i=0; $i -le $limit; $i=$i+1 ) {
     $random_asset = Get-Random -InputObject $assets
-    $scripts = Get-ChildItem .\vulns | select -ExpandProperty Name
+    $scripts = Get-ChildItem $vulns_path | select -ExpandProperty Name
     $random_script = Get-Random -InputObject $scripts
     $n = Get-Random -Maximum 10
 
     Write-Host "Executing $random_script"
 
-    & .\Scripts\$($random_script) -limit $n -Hostname "$($random_asset).$($domain)"
+    & "$($vulns_path)$($random_script)" -limit $n -Hostname "$($random_asset).$($domain)"
 }
+
+return 0

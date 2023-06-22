@@ -2,8 +2,8 @@ param(
     [string]$Hostname
 )
 
-    Import-Module ".\Utils\Add-ADUser.ps1"
-
+    Import-Module ".\scripts\utils\constants.ps1"
+    Import-Module "$($vulns_path)Add-ADUser.ps1"
     $taskNames = @(
         "BackupTask",
         "CleanupTask",

@@ -35,10 +35,6 @@ param(
         # Load configuration file
         $config = Get-Content -Path $configPath -Raw | ConvertFrom-Json
 
-        # Define the domain name
-
-        # Define users limit
-        $UsersLimit = $config.domain.usersLimit
 
         # Create credential object for the local admin and the domain admin
         $admin = New-Object System.Management.Automation.PSCredential -ArgumentList $($config.domain.admin), (ConvertTo-SecureString -String $config.domain.password -AsPlainText -Force)

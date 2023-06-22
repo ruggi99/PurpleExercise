@@ -11,8 +11,8 @@ from json import loads as json_loads, decoder as json_decoder
 #               GLOBAL VARIABLES             #
 ##############################################
 CONFIG_JSON_PATH  = "../config.json"
-VULN_SPAWNER_PATH = "../scripts/spawner.ps1"
-VULN_CHECKER_PATH = "../scripts/checker.ps1"
+VULN_SPAWNER_PATH = "./scripts/spawner.ps1"
+VULN_CHECKER_PATH = "./scripts/checker.ps1"
 VULN_SPAWNER_CWD = "../"
 VULN_CHECKER_CWD = "../"
 GAME_STATE_PATH = "../game_state.json"
@@ -83,9 +83,11 @@ class Server():
     def _start_threads(self) -> None:
         self.spawner_thread.up = True
         self.spawner_thread.thread.start()
+        print("Spawner thread started");
 
         self.checker_thread.up = True
         self.checker_thread.thread.start()
+        print("Checker thread started");
         return
 
 
@@ -119,7 +121,8 @@ class Server():
     def _execute_spawner(self) -> None:
         while self.spawner_thread.up:
             command = f"powershell -ep bypass {VULN_SPAWNER_PATH}"
-            _ = sp_check_output(command, cwd = VULN_SPAWNER_CWD, text = True) # We should check this
+            res = sp_check_output(command, cwd = VULN_SPAWNER_CWD, text = True) # We should check this
+            print(res)
 
             time_sleep(self.CONFIG["lab"]["spawner_time_interval"])
 
@@ -129,26 +132,26 @@ class Server():
     def _execute_checker(self) -> None:
         while self.checker_thread.up:
             command = f"powershell -ep bypass {VULN_CHECKER_PATH}"
-            _ = sp_check_output(command, cwd = VULN_CHECKER_CWD, text = True) # We should check this
+            res = sp_check_output(command, cwd = VULN_CHECKER_CWD, text = True) # We should check this
+            print(res)
             
-            try:
-                response_json = json_loads(GAME_STATE_PATH)
-
-            except json_decoder.JSONDecodeError as error:
-                print(f"Formatter error while loading the game_state.json: {error}")
-                continue
-
-            if ("points" not in response_json) or ("game_ended" not in response_json):
-                print("Missing key in game_state.json... Required keys: points, game_ended")
+            response = self._load_json(GAME_STATE_PATH, encoding='utf-8-sig')
+            
+            if not response["status"]:
+                print(f"error: {response['error']}")
                 continue
             
-            self._update_game_state(response_json)
+            if ("points" not in response["res"]) or ("game_ended" not in response["res"]):
+                print(f"error: missing key points or game_ended")
+                continue
+            
+            self._update_game_state(response["res"])
 
             time_sleep(self.CONFIG["lab"]["checker_time_interval"])
         return
 
 
-    def _load_json(self, json_path : str) -> dict:
+    def _load_json(self, json_path : str, encoding : str = "utf-8") -> dict:
         res = {"status" : False, "error" : "", "res" : ""}
 
         # Check json existance
@@ -157,7 +160,7 @@ class Server():
             return res
 
         # Read json
-        with open(json_path, "r") as fd:
+        with open(json_path, "r", encoding=encoding) as fd:
             json_file = fd.read()
         
         # Parse json

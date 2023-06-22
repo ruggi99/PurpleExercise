@@ -2,7 +2,8 @@
     [string]$Hostname
      )
 
-Import-Module ".\Utils\Add-ADUser.ps1"
+Import-Module ".\scripts\utils\constants.ps1"
+Import-Module "$($vulns_path)Add-ADUser.ps1"
 
 # AD INITIALIZATION
 # Define configuration file path
@@ -16,10 +17,6 @@ throw "Configuration file not found. Check file path."
 
 # Load configuration file
 $config = Get-Content -Path $configPath -Raw | ConvertFrom-Json
-
-
-# Define users limit
-$UsersLimit = $config.domain.usersLimit
 
 # Create credential object for the local admin and the domain admin
 $admin = New-Object System.Management.Automation.PSCredential -ArgumentList $($config.domain.admin), (ConvertTo-SecureString -String $config.domain.password -AsPlainText -Force)

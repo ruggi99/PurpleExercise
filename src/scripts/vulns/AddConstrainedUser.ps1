@@ -4,7 +4,9 @@ param(
     [string]$limit
      )
 
-	# AD INITIALIZATION
+    Import-Module ".\scripts\utils\constants.ps1"
+    Import-Module "$($vulns_path)Add-ADUser.ps1"
+
 	# Define configuration file path
 	$configPath = ".\AD_network.json"
 
@@ -20,9 +22,6 @@ $HumansNames = @('Aaren', 'Aarika', 'Abagael', 'Abagail', 'Abbe', 'Abbey', 'Abbi
 
 	# Define the domain name
 	$Domain = $config.domain.name
-
-	# Define users limit
-	$UsersLimit = $config.domain.usersLimit
 
 	# Create credential object for the local admin and the domain admin
 	$admin = New-Object System.Management.Automation.PSCredential -ArgumentList $($config.domain.admin), (ConvertTo-SecureString -String $config.domain.password -AsPlainText -Force)

@@ -40,7 +40,7 @@ def main() -> None:
     if not config["ip"] or not config["port"]:
         raise KeyError("Missing ip or port")
 
-    url = f"http://{config['ip']}:{config['port']}"
+    url = f"http://{config['ip']}:{config['port']}/start"
     password = gp_getpass(prompt = "Password: ")
     data = {"password" : password}
 

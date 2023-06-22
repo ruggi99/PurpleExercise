@@ -2,6 +2,8 @@
     [string]$limit
        
 )
+    Import-Module ".\scripts\utils\constants.ps1"
+
     $Groups = @('marketing','sales','accounting');
 
     # Define configuration file path
@@ -19,13 +21,10 @@
 	# Define the domain name
 	$Domain = $config.domain.name
 
-	# Define users limit
-	$UsersLimit = $config.domain.usersLimit
-
 	# Create credential object for the local admin and the domain admin
 	$admin = New-Object System.Management.Automation.PSCredential -ArgumentList $($config.domain.admin), (ConvertTo-SecureString -String $config.domain.password -AsPlainText -Force)
 
-    Import-Module ".\Utils\Add-ADUser.ps1"
+    Import-Module "$($vulns_path)Add-ADUser.ps1"
     
     Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock { 
 	    for ($i = 0; $i -le $using:limit; $i++){
