@@ -85,7 +85,7 @@ body {
   min-height: 100%;
   padding: 0.1px;
   margin: 0;
-  background-image: url("/images/background.jpg");
+  background-image: url("/static/images/background.jpg");
   background-repeat: no-repeat;
   background-size: 100% 100%;
   color: white;

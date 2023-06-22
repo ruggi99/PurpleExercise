@@ -7,12 +7,17 @@ import { resolve } from "path";
 export default defineConfig({
   plugins: [svelte()],
   build: {
-    outDir: "../server/templates/",
+    outDir: "dist",
     rollupOptions: {
       input: {
         main: resolve(__dirname, "index.html"),
         red_team: resolve(__dirname, "red_team.html"),
       },
+      output: {
+        assetFileNames: "static/assets/[name]-[hash][extname]",
+        chunkFileNames: "static/assets/[name]-[hash].js",
+        entryFileNames: "static/assets/[name]-[hash].js",
+      }
     },
   },
 });
