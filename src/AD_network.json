@@ -1,5 +1,4 @@
 ﻿{
-  "startExclusion": 1,
   "win_condition" : "attacker",
   "domain": {
     "hostname": "dc",
@@ -8,7 +7,6 @@
     "dcip": "172.27.18.68",
     "admin": "Administrator",
     "password": "Password%",
-    "usersLimit": "50",
     "value": 10,
     "valueSimpleUser": 1,
     "valueEnterpriseAdmin": 10,
