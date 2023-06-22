@@ -1,47 +1,71 @@
 <script lang="ts">
-  import svelteLogo from './assets/svelte.svg'
-  import viteLogo from '/vite.svg'
-  import Counter from './lib/Counter.svelte'
+  import type { DataType } from "./types";
+  const fetchDataIntervalSeconds = 10000;
+  const updateTimeIntervalSeconds = 800;
+  const URL = import.meta.env.DEV ? "http://localhost:5000" : "";
+
+  let initialData = {};
+  let data: DataType | null = null;
+  let percentage = 0;
+  let remaining_time = "";
+  let color = "";
+
+  async function initData() {
+    const response = await fetch(URL + "/data.json");
+    initialData = await response.json();
+  }
+
+  async function fetchData() {
+    const response = await fetch(URL + "/data.json");
+    data = (await response.json()) as DataType;
+
+    percentage = (data.points * 100) / data.initial_points;
+
+    if (percentage > 60) {
+      color = "green";
+    } else if (percentage > 20) {
+      color = "yellow";
+    } else {
+      color = "red";
+    }
+  }
+
+  function updateTime() {
+    const now = new Date().getTime();
+    const seconds_elapsed =
+      data.start_time == 0 ? 0 : now / 1000 - data.start_time;
+    const timezone = new Date(0).getTimezoneOffset();
+    const time_remained = data.max_seconds_available - seconds_elapsed;
+    remaining_time = new Date(time_remained * 1000 + timezone * 60 * 1000)
+      .toLocaleTimeString()
+      .substring(0, 8);
+  }
+
+  initData().then(async () => {
+    await fetchData();
+    updateTime();
+
+    setInterval(fetchData, fetchDataIntervalSeconds);
+    setInterval(updateTime, updateTimeIntervalSeconds);
+  });
 </script>
 
-<main>
-  <div>
-    <a href="https://vitejs.dev" target="_blank" rel="noreferrer">
-      <img src={viteLogo} class="logo" alt="Vite Logo" />
-    </a>
-    <a href="https://svelte.dev" target="_blank" rel="noreferrer">
-      <img src={svelteLogo} class="logo svelte" alt="Svelte Logo" />
-    </a>
-  </div>
-  <h1>Vite + Svelte</h1>
-
-  <div class="card">
-    <Counter />
-  </div>
-
-  <p>
-    Check out <a href="https://github.com/sveltejs/kit#readme" target="_blank" rel="noreferrer">SvelteKit</a>, the official Svelte app framework powered by Vite!
-  </p>
-
-  <p class="read-the-docs">
-    Click on the Vite and Svelte logos to learn more
-  </p>
-</main>
-
-<style>
-  .logo {
-    height: 6em;
-    padding: 1.5em;
-    will-change: filter;
-    transition: filter 300ms;
-  }
-  .logo:hover {
-    filter: drop-shadow(0 0 2em #646cffaa);
-  }
-  .logo.svelte:hover {
-    filter: drop-shadow(0 0 2em #ff3e00aa);
-  }
-  .read-the-docs {
-    color: #888;
-  }
-</style>
+<div class="box" data-color={color}>
+  {#if data != null}
+    {#if data.start_time != 0}
+      <p class="score">Score: {data.points}/{data.initial_points}</p>
+      <p class="progress">Progress: {percentage}%</p>
+      <p class="time">Time remained: {remaining_time}</p>
+      <div class="progress-container" style="margin-bottom:10px">
+        <div id="progress" class="progress-full">
+          <div class="progress-value" style:width={percentage + "%"} />
+        </div>
+      </div>
+      <!-- svelte-ignore missing-declaration -->
+      <!-- @ts-ignore -->
+      <p class="win_condition">Utente da mettere negli Enterprise Admin: {{ win_condition }}</p>
+    {:else}
+      <h2 style="text-align:center;">La partita deve ancora cominciare</h2>
+    {/if}
+  {/if}
+</div>
