@@ -26,38 +26,71 @@ RED_PASSWORD   = "michiamovirgolasonoungattino"
 ##############################################
 class Server():
     def __init__(self) -> None:
+        # Create flask app
         self.app = Flask(__name__)
-
+        
+        # Load config
         self.config = self._load_json(CONFIG_JSON_PATH)
         
         if self.config is None:
             raise ValueError("config is None")
-
-        self.game_state = GameState(max_seconds_available = self.config["max_seconds_available"], points = self.config["points"], initial_points = self.config["points"])
-
-        self.spawner_thread = GameThread()
-        self.checker_thread = GameThread()
+        
+        # Init game state
+        self.game_state = GameState(points = self.config["points"],
+                                    initial_points = self.config["points"],
+                                    max_seconds_available = self.config["max_seconds_available"]
+                          )
         return
     
     
     def run(self) -> None:
-        self.spawner_thread.thread = Thread(target = self._execute_spawner, daemon = True)
-        self.checker_thread.thread = Thread(target = self._execute_checker, daemon = True)
-
-        self.app.add_url_rule("/", view_func=self.index, methods = ["GET"])
-        self.app.add_url_rule("/start", view_func=self.start, methods = ["POST"])
-        self.app.add_url_rule("/data.json", view_func=self.data, methods = ["GET"])
-        self.app.add_url_rule("/red_team", view_func=self.red_team, methods = ["GET"])
+        self._add_endpoints()
+        self._create_threads()
 
         self.app.run(host = SERVER_IP, port = SERVER_PORT, debug = True)
         return
 
 
+    def _add_endpoints(self) -> None:
+        self.app.add_url_rule("/start", view_func = self.start, methods = ["POST"])
+        self.app.add_url_rule("/", view_func = self.index, methods = ["GET"])
+        self.app.add_url_rule("/data.json", view_func = self.data, methods = ["GET"])
+        self.app.add_url_rule("/red_team", view_func  =self.red_team, methods = ["GET"])
+        return
+
+
+    def _create_threads(self) -> None:
+        self.spawner_thread = GameThread()
+        self.checker_thread = GameThread()
+
+        self.spawner_thread.thread = Thread(target = self._execute_spawner, daemon = True)
+        self.checker_thread.thread = Thread(target = self._execute_checker, daemon = True)
+        return
+
+
+    def _start_threads(self) -> None:
+        self.spawner_thread.up = True
+        self.spawner_thread.thread.start()
+
+        self.checker_thread.up = True
+        self.checker_thread.thread.start()
+        return
+
+
+    def _stop_threads(self) -> None:
+        self.spawner_thread.up = False
+        self.spawner_thread.thread.join()
+
+        self.checker_thread.up = False
+        self.checker_thread.thread.join()
+        return
+        
+
     def _update_game_state(self, state : dict) -> None:
-        # Current points
+        # Update current points
         self.game_state.points -= state["points"]
         
-        # End game
+        # Update end game
         if self.game_state.points < 0:
             self.game_state.game_ended = True
 
@@ -66,10 +99,8 @@ class Server():
         
         # Terminate threads if game ended
         if self.game_state.game_ended:
-            self.spawner_thread.up = False
-            self.checker_thread.up = False
-            self.spawner_thread.thread.join()
-            self.checker_thread.thread.join()
+            self._stop_threads()
+
         return
 
     
@@ -86,7 +117,7 @@ class Server():
     def _execute_checker(self) -> None:
         while self.checker_thread.up:
             command = f"powershell -ep bypass {VULN_CHECKER_PATH}"
-            response = sp_check_output(command, cwd = "../../", text = True) # We should check t
+            response = sp_check_output(command, cwd = "../../", text = True) # We should check this
             
             try:
                 response_json = json_loads(response)
@@ -101,9 +132,6 @@ class Server():
 
     def _load_json(self, json_path : str) -> dict | None:
         # Check json existance
-        if not Path(json_path).exists():
-            return None
-
         if not Path(json_path).is_file():
             return None
 
@@ -122,32 +150,27 @@ class Server():
     ##############################################
     #                  ENDPOINTS                 #
     ##############################################
-    def start(self) -> int:
+    def start(self) -> str:
         if self.game_state.start_time != 0:
-            return "401"
+            return "Error"
 
-        print(flask_request.form)
         if "password" not in flask_request.form:
-            return "402"
+            return "Error"
 
         if flask_request.form["password"] == START_PASSWORD:
             # Set start time
             self.game_state.start_time = time_time()
             
             # Threads
-            # self.spawner_thread.up = True
-            # self.spawner_thread.thread.start()
+            self._start_threads() 
 
-            # self.checker_thread.up = True
-            # self.checker_thread.thread.start()
+            return "Ok"
 
-            return "200"
-
-        return "403"
+        return "Error"
 
 
     def index(self) -> str:
-        return render_template("index.html", data=self.config)
+        return render_template("index.html", data = self.config)
     
 
     def data(self) -> dict:
@@ -156,10 +179,10 @@ class Server():
 
     def red_team(self) -> str:
         if "password" not in flask_request.form:
-            return
+            return "Error"
 
         if flask_request.form["password"] != RED_PASSWORD:
-            return
+            return "Error"
 
         win_condition = self.config["win_condition"]
         return render_template("red_team.html", win_condition)
