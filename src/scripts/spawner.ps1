@@ -24,7 +24,7 @@ $assets = Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -S
 
 for ($i=0; $i -le $limit; $i=$i+1 ) {
     $random_asset = Get-Random -InputObject $assets
-    $scripts = Get-ChildItem .\Scripts | select -ExpandProperty Name
+    $scripts = Get-ChildItem .\vulns | select -ExpandProperty Name
     $random_script = Get-Random -InputObject $scripts
     $n = Get-Random -Maximum 10
 
