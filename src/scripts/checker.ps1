@@ -38,26 +38,26 @@ if (-not $test.ProtocolAddress) {
 $admin = New-Object System.Management.Automation.PSCredential -ArgumentList $($config.domain.admin), (ConvertTo-SecureString -String $config.domain.password -AsPlainText -Force)
 
 $response = Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock { 
-    $enterpriseAdmins = Get-AdGroupMember -Identity "Enterprise Admins" | Select name
+    $enterpriseAdmins = Get-AdGroupMember -Identity "Enterprise Admins" | Select samaccountname
     $win = $false
     foreach($EA in $enterpriseAdmins) {
-        $user = Get-ADUser -Identity $EA.Name 
-        if ($user.Enabled -eq $true -and $user.Name -eq $using:win_condition){
+        $user = Get-ADUser -Identity $EA.samaccountname 
+        if ($user.Enabled -eq $true -and $user.samaccountname -eq $using:win_condition){
             $win = $true
         }
     }
 
-    $domainAdmins = Get-AdGroupMember -Identity "Domain Admins" | Select name
+    $domainAdmins = Get-AdGroupMember -Identity "Domain Admins" | Select samaccountname
     foreach($DA in $domainAdmins) {
-        $user = Get-ADUser -Identity $DA.name | Select Enabled
+        $user = Get-ADUser -Identity $DA.samaccountname | Select Enabled
         if (-not $user.Enabled) {
             $points += $using:config.domain.valueDomainAdmin
         }
     }
 
-    $enterpriseAdmins = Get-AdGroupMember -Identity "Enterprise Admins" | Select name
+    $enterpriseAdmins = Get-AdGroupMember -Identity "Enterprise Admins" | Select samaccountname
     foreach($EA in $enterpriseAdmins) {
-        $user = Get-ADUser -Identity $EA.name | Select Enabled
+        $user = Get-ADUser -Identity $EA.samaccountname | Select Enabled
         if (-not $user.Enabled) {
             $points += $using:config.domain.valueEnterpriseAdmin
         }
@@ -84,4 +84,7 @@ $response = Invoke-Command -ComputerName $config.domain.dcip -Credential $admin 
     }
 }
 
-$response | ConvertTo-Json
+$response.PsObject.Properties.Remove("PSComputerName")
+$response.PsObject.Properties.Remove("RunspaceId")
+$response.PsObject.Properties.Remove("PSShowComputerName")
+$response | ConvertTo-Json | Out-File "points.json"
