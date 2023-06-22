@@ -52,13 +52,17 @@
 
 <div class="box" data-color={color}>
   {#if data != null}
-    <p class="score">Score: {data.points}/{data.initial_points}</p>
-    <p class="progress">Progress: {percentage}%</p>
-    <p class="time">Time remained: {remaining_time}</p>
-    <div class="progress-container" style="margin-bottom:10px">
-      <div id="progress" class="progress-full">
-        <div class="progress-value" />
+    {#if data.start_time != 0}
+      <p class="score">Score: {data.points}/{data.initial_points}</p>
+      <p class="progress">Progress: {percentage}%</p>
+      <p class="time">Time remained: {remaining_time}</p>
+      <div class="progress-container" style="margin-bottom:10px">
+        <div id="progress" class="progress-full">
+          <div class="progress-value" style:width={percentage + "%"} />
+        </div>
       </div>
-    </div>
+    {:else}
+      <h2 style="text-align:center;">La partita deve ancora cominciare</h2>
+    {/if}
   {/if}
 </div>
