@@ -41,9 +41,10 @@ winrm set winrm/config/client @{TrustedHosts="*"}
 
 ## Start Up
 All scripts must be executed from an external asset that is not joined to the domain.
+In the src directory execute the following commands:
 1) Run the initializator
    ```
-   .\initializator.ps1
+   .\scripts\initializator.ps1
    ```
 3) Run the server
    ```
