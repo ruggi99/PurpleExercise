@@ -1,8 +1,8 @@
-from flask import Flask, render_template, request as flask_request, jsonify
+from flask import Flask, render_template, request as flask_request, jsonify, Response
 from pathlib import Path
-from time import time as time_time, sleep as time_sleep
+from time import time as time_time
 from dataclasses import dataclass, asdict as dt_asdict
-from threading import Thread
+from threading import Thread, Event
 from subprocess import check_output as sp_check_output
 from json import loads as json_loads, decoder as json_decoder
 from random import randint as random_randint
@@ -73,30 +73,27 @@ class Server():
 
 
     def _create_threads(self) -> None:
-        self.spawner_thread = GameThread()
-        self.checker_thread = GameThread()
-
-        self.spawner_thread.thread = Thread(target = self._execute_spawner, daemon = True)
-        self.checker_thread.thread = Thread(target = self._execute_checker, daemon = True)
+        self.spawner_thread = GameThread(Thread(target = self._execute_spawner, daemon = True))
+        self.checker_thread = GameThread(Thread(target = self._execute_checker, daemon = True))
         return
 
 
     def _start_threads(self) -> None:
-        self.spawner_thread.up = True
+        self.spawner_thread.event.clear()
         self.spawner_thread.thread.start()
-        print("Spawner thread started");
+        print("Spawner thread started")
 
-        self.checker_thread.up = True
+        self.checker_thread.event.clear()
         self.checker_thread.thread.start()
-        print("Checker thread started");
+        print("Checker thread started")
         return
 
 
     def _stop_threads(self) -> None:
-        self.spawner_thread.up = False
+        self.spawner_thread.event.set()
         self.spawner_thread.thread.join()
 
-        self.checker_thread.up = False
+        self.checker_thread.event.set()
         self.checker_thread.thread.join()
         return
         
@@ -120,20 +117,23 @@ class Server():
 
     
     def _execute_spawner(self) -> None:
-        while self.spawner_thread.up:
+        while True:
             random_number = random_randint(1, 5)
             command = f"powershell -ep bypass {VULN_SPAWNER_PATH} -limit {random_number}"
+            # check_output raises CalledProcessError if exit-code is non-zero
             res = sp_check_output(command, cwd = VULN_SPAWNER_CWD, text = True) # We should check this
             print(res)
 
-            time_sleep(self.CONFIG["lab"]["spawner_time_interval"])
+            if self.spawner_thread.event.wait(self.CONFIG["lab"]["spawner_time_interval"]):
+                break
 
         return
 
 
     def _execute_checker(self) -> None:
-        while self.checker_thread.up:
+        while True:
             command = f"powershell -ep bypass {VULN_CHECKER_PATH}"
+            # check_output raises CalledProcessError if exit-code is non-zero
             res = sp_check_output(command, cwd = VULN_CHECKER_CWD, text = True) # We should check this
             print(res)
             
@@ -149,7 +149,8 @@ class Server():
             
             self._update_game_state(response["res"])
 
-            time_sleep(self.CONFIG["lab"]["checker_time_interval"])
+            if self.checker_thread.event.wait(self.CONFIG["lab"]["checker_time_interval"]):
+                break
         return
 
 
@@ -236,7 +237,7 @@ class Server():
         return render_template("index.html")
     
 
-    def data(self) -> dict:
+    def data(self) -> Response:
         response = jsonify(dt_asdict(self.game_state))
         response.headers.add("Access-Control-Allow-Origin", "*")
         return response
@@ -269,8 +270,8 @@ class GameState:
 
 @dataclass
 class GameThread:
-    thread : Thread = None
-    up : bool = False
+    thread : Thread
+    event: Event = Event()
 
 
 
