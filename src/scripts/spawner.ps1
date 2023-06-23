@@ -1,4 +1,4 @@
-﻿param (
+param (
     [string]$limit    
 )
 
@@ -24,7 +24,7 @@ $Domain = $config.domain.name
 
 $assets = Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock { Get-ADComputer -Filter * -Property Name | Select-Object -ExpandProperty Name }
 
-for ($i=0; $i -le $limit; $i=$i+1 ) {
+for ($i=0; $i -lt $limit; $i=$i+1 ) {
     $random_asset = Get-Random -InputObject $assets
     $scripts = Get-ChildItem $vulns_path | select -ExpandProperty Name
     $random_script = Get-Random -InputObject $scripts
@@ -32,7 +32,7 @@ for ($i=0; $i -le $limit; $i=$i+1 ) {
 
     Write-Host "Executing $random_script"
 
-    & "$($vulns_path)$($random_script)" -limit $n -Hostname "$($random_asset).$($domain)"
+    Try {& "$($vulns_path)$($random_script)" -limit $n -Hostname "$($random_asset).$($domain)"} Catch {continue}
 }
 
 return 0

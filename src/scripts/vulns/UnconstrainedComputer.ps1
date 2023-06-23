@@ -16,18 +16,15 @@ param(
 	# Load configuration file
 	$config = Get-Content -Path $configPath -Raw | ConvertFrom-Json
 
-	# Define the domain name
-	$Domain = $config.domain.name
-
 	# Create credential object for the local admin and the domain admin
 	$admin = New-Object System.Management.Automation.PSCredential -ArgumentList $($config.domain.admin), (ConvertTo-SecureString -String $config.domain.password -AsPlainText -Force)
+
+    Write-Host $Hostname
     
     Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock {
-
-		#$computer = Get-ADComputer -Filter | Get-Random
-		#$ComputerName = $computer.Name
 		
-		$ComputerAccount = Get-WmiObject -Class Win32_ComputerSystem -ComputerName $using:Hostname | Select-Object -ExpandProperty UserName
+		$ComputerAccount = (Get-ADComputer -Filter {DNSHostName -eq $using:Hostname}).SamAccountName
+
         Get-ADComputer -Identity $ComputerAccount | Set-ADAccountControl -TrustedForDelegation $true
     }
       

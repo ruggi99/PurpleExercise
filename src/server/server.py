@@ -5,6 +5,7 @@ from dataclasses import dataclass, asdict as dt_asdict
 from threading import Thread
 from subprocess import check_output as sp_check_output
 from json import loads as json_loads, decoder as json_decoder
+from random import randint as random_randint
 
 
 ##############################################
@@ -120,7 +121,8 @@ class Server():
     
     def _execute_spawner(self) -> None:
         while self.spawner_thread.up:
-            command = f"powershell -ep bypass {VULN_SPAWNER_PATH}"
+            random_number = random_randint(1, 5)
+            command = f"powershell -ep bypass {VULN_SPAWNER_PATH} -limit {random_number}"
             res = sp_check_output(command, cwd = VULN_SPAWNER_CWD, text = True) # We should check this
             print(res)
 
