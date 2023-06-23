@@ -1,4 +1,4 @@
-import './app.css'
+import './app.scss'
 import Index from './Index.svelte'
 
 const app = new Index({

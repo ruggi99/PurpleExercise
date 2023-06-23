@@ -1,4 +1,4 @@
-import './app.css'
+import './app.scss'
 import RedTeam from './RedTeam.svelte'
 
 const app = new RedTeam({

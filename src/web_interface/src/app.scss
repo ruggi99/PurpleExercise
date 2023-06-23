@@ -94,7 +94,7 @@ body {
 .menu {
   height: 50px;
   background: black;
-  display: none
+  display: none;
 }
 
 .box {
@@ -146,38 +146,40 @@ body {
   background-color: white;
 }
 
-[data-color=green] .score {
-  color: green;
+[data-color="green"] {
+  .score {
+    color: green;
+  }
+
+  .progress-full {
+    border-color: green;
+  }
+
+  .progress-full > * {
+    background-color: green;
+  }
 }
 
-[data-color=green] .progress-full {
-  border-color: green;
-}
-
-[data-color=green] .progress-full > * {
-  background-color: green;
-}
-
-[data-color=yellow] .score {
+[data-color="yellow"] .score {
   color: yellow;
 }
 
-[data-color=yellow] .progress-full {
+[data-color="yellow"] .progress-full {
   border-color: yellow;
 }
 
-[data-color=yellow] .progress-full > * {
+[data-color="yellow"] .progress-full > * {
   background-color: yellow;
 }
 
-[data-color=red] .score {
+[data-color="red"] .score {
   color: red;
 }
 
-[data-color=red] .progress-full {
+[data-color="red"] .progress-full {
   border-color: red;
 }
 
-[data-color=red] .progress-full > * {
+[data-color="red"] .progress-full > * {
   background-color: red;
 }
