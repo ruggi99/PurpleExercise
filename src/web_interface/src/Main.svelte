@@ -35,7 +35,10 @@
     const seconds_elapsed =
       data.start_time == 0 ? 0 : now / 1000 - data.start_time;
     const timezone = new Date(0).getTimezoneOffset();
-    const time_remained = Math.max(data.max_seconds_available - seconds_elapsed, 0);
+    const time_remained = Math.max(
+      data.max_seconds_available - seconds_elapsed,
+      0
+    );
     remaining_time = new Date(time_remained * 1000 + timezone * 60 * 1000)
       .toLocaleTimeString()
       .substring(0, 8);
@@ -52,7 +55,11 @@
 
 <div class="box" data-color={color}>
   {#if data != null}
-    {#if data.start_time != 0}
+    {#if data.game_ended}
+      <h2 style="text-align:center;">La partita è finita</h2>
+    {:else if data.start_time == 0}
+      <h2 style="text-align:center;">La partita deve ancora cominciare</h2>
+    {:else}
       <p class="score">Score: {data.points}/{data.initial_points}</p>
       <p class="progress">Progress: {percentage}%</p>
       <p class="time">Time remained: {remaining_time}</p>
@@ -62,10 +69,6 @@
         </div>
       </div>
       <slot />
-    {:else if !data.game_ended}
-      <h2 style="text-align:center;">La partita deve ancora cominciare</h2>
-    {:else}
-    <h2 style="text-align:center;">La partita è finita</h2>
     {/if}
   {/if}
 </div>
