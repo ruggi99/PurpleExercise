@@ -1,10 +1,35 @@
-﻿param(
+﻿
+param(
     [string]$limit
        
 )
     Import-Module ".\scripts\utils\constants.ps1"
 
-    $Groups = @('marketing','sales','accounting');
+    
+    $Groups = [System.Collections.Generic.List[string]]@("marketing",
+                                                         "sales",
+                                                         "accounting",
+                                                         "Office Admin",
+                                                         "IT Admins",
+                                                         "Executives",
+                                                         "Senior management",
+                                                         "Project management",
+                                                         "Developers",
+                                                         "Operations",
+                                                         "Support",
+                                                         "Finance",
+                                                         "HumanResources",
+                                                         "QA",
+                                                         "HelpDesk",
+                                                         "Architects",
+                                                         "DBA",
+                                                         "Auditors",
+                                                         "Research",
+                                                         "Backup");
+   
+    $existing_groups = Get-ADGroup -Filter * | Select Name
+
+
 
     # Define configuration file path
 	$configPath = "AD_network.json"
@@ -27,15 +52,24 @@
     Import-Module "$($utils_path)Add-ADUser.ps1"
     
     Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock { 
-	    for ($i = 0; $i -le $using:limit; $i++){
-            $randomGroup = Get-Random -InputObject $using:Groups
-            Try { New-ADGroup -name $randomGroup } Catch {}
-            for ($i=1; $i -le (Get-Random -Maximum 20); $i=$i+1 ) {
-                $randomuser = AddAdUser
-                Write-Host "Adding $randomuser to $randomGroup"
-                Try { Add-ADGroupMember -Identity $randomGroup -Members $randomuser } Catch {}
+	    for ($i = 0; $i -lt $using:limit; $i++){
+            $found = $false
+            $randomGroup = ""
+
+            while (-not $found){
+                $randomGroup = Get-Random -InputObject $using:Groups
+                if ($randomGroup -notin $existing_groups){
+                    $found = $true
+                }
+            }
+            New-ADGroup -name $randomGroup -GroupScope Global
+            $Groups.Remove($randomGroup);
+
+
+            for ($j=1; $j -lt (Get-Random -Maximum 20); $j=$j+1 ) {
+                $randomuser, $password = AddAdUser
+                #Write-Host "Adding $randomuser to $randomGroup with password $password"
+                Add-ADGroupMember -Identity $randomGroup -Members $randomuser
             }
         }
     }
-
-
