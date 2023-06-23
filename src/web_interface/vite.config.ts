@@ -10,8 +10,8 @@ export default defineConfig({
     outDir: "dist",
     rollupOptions: {
       input: {
-        main: resolve(__dirname, "index.html"),
-        red_team: resolve(__dirname, "red_team.html"),
+        main: resolve(__dirname, "src/index.html"),
+        red_team: resolve(__dirname, "src/red_team.html"),
       },
       output: {
         assetFileNames: "static/assets/[name]-[hash][extname]",
