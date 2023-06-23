@@ -243,14 +243,14 @@ class Server():
 
 
     def red_team(self) -> str:
-        if "password" not in flask_request.form:
+        if "password" not in flask_request.args:
             return "Error"
 
-        if flask_request.form["password"] != self.RED_PASSWORD:
+        if flask_request.args["password"] != self.RED_PASSWORD:
             return "Error"
 
         red_target = self.CONFIG["lab"]["red_target"]
-        return render_template("red_team.html", red_target)
+        return render_template("red_team.html", red_target=red_target)
 
 
 
