@@ -3,7 +3,7 @@ A Purple Team Exercise is a comprehensive information security assessment that f
 
 The exercise will last one hour and will involve a total score. For every asset or user compromised by the red team, points will be deducted. However, for every asset restored or attack halted, the score will increase. At the end of the hour, the blue or red team will be declared the "winner" based on the final cumulative score.
 
-Random vulnerabilities will be generated during the challenge to provide the red team with new opportunities and make the game dynamic:
+The folllowing vulnerabilities will be random generated during the challenge to provide the red team with new opportunities and make the game dynamic:
 
 - Default password, not changed by users
 - Password in user description
