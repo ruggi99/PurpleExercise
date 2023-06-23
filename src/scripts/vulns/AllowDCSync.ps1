@@ -25,9 +25,9 @@ Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock
 	$allUsers = Get-ADUser -Filter * | Select-Object SamAccountName
 
 	# Get a random user from the list
-	$randomUser = $allUsers | Get-Random
+	$randomUser = (Get-Random -InputObject $allUsers).SamAccountName
 
-	$ADObject = [ADSI]("LDAP://" + (Get-ADDomain $Global:Domain).DistinguishedName)
+	$ADObject = [ADSI]("LDAP://" + (Get-ADDomain $using:Domain).DistinguishedName)
 	$sid = (Get-ADUser -Identity $randomUser).sid
 
 	$objectGuidGetChanges = New-Object Guid 1131f6aa-9c07-11d1-f79f-00c04fc2dcd2

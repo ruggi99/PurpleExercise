@@ -20,18 +20,18 @@ param(
 
 	# Create credential object for the local admin and the domain admin
 	$admin = New-Object System.Management.Automation.PSCredential -ArgumentList $($config.domain.admin), (ConvertTo-SecureString -String $config.domain.password -AsPlainText -Force)
-    
+    Write-Host $Hostname
     Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock {
 
 		#$computer = Get-ADComputer -Filter | Get-Random
 		#$ComputerName = $computer.Name
 		
-		
-        $ComputerAccount = Get-WmiObject -Class Win32_ComputerSystem -ComputerName $using:Hostname | Select-Object -ExpandProperty UserName
+		$computers = Get-ADComputer -Filter * | select samaccountname
+        $ComputerAccount = (Get-Random -InputObject $computers).SamAccountName
         Set-ADComputer -Identity $ComputerAccount -ServicePrincipalName @{Add="HTTP/$ComputerAccount"}
 	    Set-ADComputer -Identity $ComputerAccount -Add @{'msDS-AllowedToDelegateTo'="cifs/$using:Hostname.$using:Domain"}
 	    Set-ADComputer -Identity $ComputerAccount -Add @{'msDS-AllowedToDelegateTo'="ldap/$using:Hostname.$using:Domain"}
-	    Set-ADAccountControl -Identity "$ComputerAccount$" -TrustedToAuthForDelegation $true
+	    Set-ADAccountControl -Identity "$ComputerAccount" -TrustedToAuthForDelegation $true
       }
 
 

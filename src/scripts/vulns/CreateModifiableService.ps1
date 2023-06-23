@@ -19,7 +19,7 @@ $config = Get-Content -Path $configPath -Raw | ConvertFrom-Json
 $Domain = $config.domain.name
 
 # Create credential object for the local admin and the domain admin
-$admin = New-Object System.Management.Automation.PSCredential -ArgumentList $($config.domain.admin), (ConvertTo-SecureString -String $config.domain.password -AsPlainText -Force)
+$admin = New-Object System.Management.Automation.PSCredential -ArgumentList "$($config.domain.admin)@$($config.domain.name)", (ConvertTo-SecureString -String $config.domain.password -AsPlainText -Force)
 
 $commonWords = "Software", "System", "Utility", "Application", "Manager", "Tools", "Program"
 
@@ -30,12 +30,19 @@ $randomSubFolderPath = "C:\$randomFolderName\$randomSubFolderName1 $randomSubFol
 $scriptPath = "$randomSubFolderPath\script.exe"
 $ServiceName = $randomFolderName
 
+copy .\subinacl.exe \\$Hostname\C$\subinacl.exe
+
+
+#New-PSDrive -Name "TempDrive" -PSProvider FileSystem -Root ".\" -Credential $admin | Out-Null
+#Copy-Item -Path "TempDrive:\subinacl.exe" -Destination "\\$Hostname\C$\subinacl.exe" -Force
+#Remove-PSDrive -Name "TempDrive"
+
 Invoke-Command -ComputerName $Hostname -Credential $admin -ScriptBlock {
 	New-Item -ItemType Directory -Path $using:randomSubFolderPath
 	"This is a demo" | Out-File $using:scriptPath
     icacls "$using:scriptPath" /grant *DA:F /inheritance:r /t
-    cmd /c sc create $using:ServiceName binPath= "$using:scriptPath" type= own type= interact error= ignore start= auto
+    cmd /c sc create $using:ServiceName binPath= "$using:scriptPath" type= own type= interact error= ignore start= auto 
 }
-.\subinacl.exe /SERVICE \\$Hostname\usosvc /GRANT=EVERYONE=F 
-.\subinacl.exe /SERVICE \\$Hostname\$ServiceName /GRANT=EVERYONE=F
+.\subinacl.exe /SERVICE \\$Hostname\$ServiceName /GRANT=EVERYONE=F | Out-Null
+
 

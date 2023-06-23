@@ -22,7 +22,6 @@ Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock
     $groups_needed = 3
     $groups = [System.Collections.Generic.List[string]]@()
 
-    $existing_groups = Get-ADGroup -Filter * | Select Name
     $groups_available = [System.Collections.Generic.List[string]]@("marketing",
                                                                    "sales",
                                                                    "accounting",
@@ -44,13 +43,20 @@ Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock
                                                                    "Research",
                                                                    "Backup");
 
-    for ($i = 0; $i -lt $group_needed; $i++){
+    for ($i = 0; $i -lt $groups_needed; $i=$i+1){
         # Get random group
+        $existing_groups = Get-ADGroup -Filter * | Select Name
         $selected_group = Get-Random -InputObject $groups_available;
-
         # If not exist just create it
-        if ($selected_group -notin $existing_groups){
-            New-ADGroup -name $randomGroup -GroupScope Global
+        $found = $false
+        foreach ($g in $existing_groups) {
+            if ($g.Name -eq $selected_group){
+                $found = $true
+                break
+            }
+        }
+        if (-not $found){
+            New-ADGroup -name $selected_group -GroupScope Global
         }
         $groups.Add($selected_group);
     }
@@ -94,18 +100,18 @@ Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock
 
     # Create second BadACL
     $abuse = Get-Random -InputObject $BadACL;
-    $existing_users = Get-ADUser -Filter * | Select Name
+    $existing_users = Get-ADUser -Filter * | Select SamAccountName
     $randomuser = Get-Random -InputObject $existing_users
     $second_badacl_group = $groups[2]
 
     if ((Get-Random -Maximum 2)){
-        $Dstobj = Get-ADUser -Identity $randomuser
+        $Dstobj = Get-ADUser -Identity $randomuser.SamAccountName
         $Srcobj = Get-ADGroup -Identity $second_badacl_group
     }else{
-        $Srcobj = Get-ADUser -Identity $randomuser
+        $Srcobj = Get-ADUser -Identity $randomuser.SamAccountName
         $Dstobj = Get-ADGroup -Identity $second_badacl_group
     }
     VulnAD-AddACL -Source $Srcobj.sid -Destination $Dstobj.DistinguishedName -Rights $abuse 
-    Write-Host "BadACL $abuse $randomuser and $second_badacl_group"
+    Write-Host "BadACL $abuse $($randomuser.SamAccountName) and $second_badacl_group"
 }
 

@@ -51,19 +51,16 @@ param(
 
     $type = Get-Random -Minimum 0 -Maximum 2
 
-
-    Invoke-Command -ComputerName $Hostname -Credential $admin -ScriptBlock{
-        #$groupsid = (Get-WMIObject -Class Win32_Group -Filter "LocalAccount=True and SID='S-1-5-domain-500'").Name
-        cmd /c net localgroup "Administrators" $using:username /add | Out-String
-    }
-    
-    if ($type -eq 1){
-        
+    if ($type -eq 1) {
+        Invoke-Command -ComputerName $Hostname -Credential $admin -ScriptBlock{
+            #$groupsid = (Get-WMIObject -Class Win32_Group -Filter "LocalAccount=True and SID='S-1-5-domain-500'").Name
+            cmd /c net localgroup "Administrators" $using:username /add | Out-String
+        }
+    } else { 
         Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock{
             #$groupsid = (Get-WMIObject -Class Win32_Group -Filter "LocalAccount=True and SID='S-1-5-domain-512'").Name
             cmd /c net localgroup "Administrators" $using:username /add | Out-String
         }
-
     }
 
    $task_name = Get-Random -InputObject $taskNames 
