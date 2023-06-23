@@ -39,15 +39,15 @@ winrm set winrm/config/client @{TrustedHosts="*"}
 
 ## Start Up
 All scripts must be executed from an external asset that is not joined to the domain.
-1) Execute initializator.ps1
+1) Run the initializator
    ```
    .\initializator.ps1
    ```
-3) Execute server.py
+3) Run the server
    ```
    python server.py
    ```
-5) Execute start.py referring to the password specified in the config.json file
+5) Run start.py, referring to the password specified in the config.json file
    ```
    python start.py
    ```
