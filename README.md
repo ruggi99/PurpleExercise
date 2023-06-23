@@ -1,3 +1,5 @@
+![plot](./img/front.png)
+
 ## Introduction
 A Purple Team Exercise is a comprehensive information security assessment that fosters collaboration among participants to engage in attacking, detecting, and responding activities. These exercises encourage a "hands-on keyboard" approach, where participants actively work together, engaging in open discussions about various attack techniques and expected defense measures. The primary purpose of Purple Team Exercises is to assess, measure, and enhance the effectiveness of people, processes, and technologies in real-time. These exercises emulate real-world Tactics, Techniques, and Procedures (TTPs), enabling organizations to identify and address vulnerabilities in their security posture. The ultimate objective is to bolster resilience against existing threats by proactively detecting and responding to attacks before they can cause significant impact.
 
