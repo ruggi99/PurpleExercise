@@ -1,9 +1,9 @@
 ## Introduction
 A Purple Team Exercise is a comprehensive information security assessment that fosters collaboration among participants to engage in attacking, detecting, and responding activities. These exercises encourage a "hands-on keyboard" approach, where participants actively work together, engaging in open discussions about various attack techniques and expected defense measures. The primary purpose of Purple Team Exercises is to assess, measure, and enhance the effectiveness of people, processes, and technologies in real-time. These exercises emulate real-world Tactics, Techniques, and Procedures (TTPs), enabling organizations to identify and address vulnerabilities in their security posture. The ultimate objective is to bolster resilience against existing threats by proactively detecting and responding to attacks before they can cause significant impact.
 
-The exercise will last one hour and will involve a total score. For every machine or user compromised by the red team, points will be deducted. However, for every machine restored or attack halted, the score will increase. At the end of the hour, the blue or red team will be declared the "winner" based on the final cumulative score.
+The exercise will last one hour and will involve a total score. For every asset or user compromised by the red team, points will be deducted. However, for every asset restored or attack halted, the score will increase. At the end of the hour, the blue or red team will be declared the "winner" based on the final cumulative score.
 
-In these exercises, the vulnerabilities that will be exploited and analyzed are as follows:
+Random vulnerabilities will be generated during the challenge to provide the red team with new opportunities and make the game dynamic:
 
 - Default password, not changed by users
 - Password in user description
@@ -15,7 +15,7 @@ In these exercises, the vulnerabilities that will be exploited and analyzed are 
 - User credentials in LSASS
 - Constrained Delegations for Users and Computers
 - Unconstrained Delegations for Computers
-- Windows Defender exception (*optional*)
+- Windows Defender exception
 
 ## Dependencies
 Put in the same directory:
@@ -36,6 +36,21 @@ Before adding assets to the scenario, please ensure that the following prerequis
 winrm quickconfig -q
 winrm set winrm/config/client @{TrustedHosts="*"}
 ```
+
+## Start Up
+All scripts must be executed from an external asset that is not joined to the domain.
+1) Execute initializator.ps1
+   ```
+   .\initializator.ps1
+   ```
+3) Execute server.py
+   ```
+   python server.py
+   ```
+5) Execute start.py referring to the password specified in the config.json file
+   ```
+   python start.py
+   ```
 
 ## Warnings
 Please note the following warnings before adding assets to the scenario:
