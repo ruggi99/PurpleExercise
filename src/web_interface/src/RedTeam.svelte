@@ -62,8 +62,7 @@
         </div>
       </div>
       <!-- svelte-ignore missing-declaration -->
-      <!-- @ts-ignore -->
-      <p class="win_condition">Utente da mettere negli Enterprise Admin: {{ win_condition }}</p>
+      <p class="win_condition">Utente da mettere negli Enterprise Admin: { red_target }</p>
     {:else}
       <h2 style="text-align:center;">La partita deve ancora cominciare</h2>
     {/if}
