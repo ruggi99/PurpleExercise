@@ -2,10 +2,12 @@ from flask import Flask, render_template, request as flask_request, jsonify, Res
 from pathlib import Path
 from time import time as time_time
 from dataclasses import dataclass, asdict as dt_asdict
-from threading import Thread, Event
-from subprocess import check_output as sp_check_output
+from threading import Thread, Event, Timer
+from subprocess import check_output as sp_check_output, CalledProcessError as sp_CalledProcessError
 from json import loads as json_loads, decoder as json_decoder
 from random import randint as random_randint
+from colorama import Fore, Style, init as colorama_init
+from sys import platform as sys_platform
 
 
 ##############################################
@@ -24,6 +26,10 @@ GAME_STATE_PATH = "../game_state.json"
 ##############################################
 class Server():
     def __init__(self) -> None:
+        # Init colorama
+        if sys_platform == "win32":
+            colorama_init()
+
         # Create flask app
         self.APP = Flask(__name__)
         
@@ -53,9 +59,13 @@ class Server():
                                     initial_points = self.CONFIG["lab"]["max_points"],
                                     max_seconds_available = self.CONFIG["lab"]["max_seconds_available"]
                           )
+        
         return
     
-
+    
+    ##############################################
+    #                   CREATE                   #
+    ##############################################
     def run(self) -> None:
         self._add_endpoints()
         self._create_threads()
@@ -77,15 +87,18 @@ class Server():
         self.checker_thread = GameThread(Thread(target = self._execute_checker, daemon = True))
         return
 
-
+    
+    ##############################################
+    #                START / STOP                #
+    ##############################################
     def _start_threads(self) -> None:
         self.spawner_thread.event.clear()
         self.spawner_thread.thread.start()
-        print("Spawner thread started")
+        print(f"{Fore.GREEN}{Style.BRIGHT}[+]{Style.RESET_ALL} Spawner thread started")
 
         self.checker_thread.event.clear()
         self.checker_thread.thread.start()
-        print("Checker thread started")
+        print(f"{Fore.GREEN}{Style.BRIGHT}[+]{Style.RESET_ALL} Checker thread started")
         return
 
 
@@ -96,7 +109,69 @@ class Server():
         self.checker_thread.event.set()
         self.checker_thread.thread.join()
         return
+    
+
+    def _start_timer(self) -> None:
+        def end_game() -> None:
+            self.game_state.game_ended = True
+            self._stop_threads()
+
+        self.timer = Timer(self.CONFIG["lab"]["max_seconds_available"], end_game)
+        self.timer.start()
+        return
+    
+
+    def _stop_timer(self) -> None:
+        self.timer.cancel()
+        return
         
+
+    ##############################################
+    #               THREAD FUNCTIONS             #
+    ##############################################
+    def _execute_spawner(self) -> None:
+        while True:
+            random_number = random_randint(1, 5)
+            command = f"powershell -ep bypass {VULN_SPAWNER_PATH} -limit {random_number}"
+            # check_output raises CalledProcessError if exit-code is non-zero
+            try:
+                _ = sp_check_output(command, cwd = VULN_SPAWNER_CWD, text = True)
+
+            except sp_CalledProcessError:
+                print(f"{Fore.RED}{Style.BRIGHT}[-]{Style.RESET_ALL} Error: spawner returned non-zero exit-code")
+
+            if self.spawner_thread.event.wait(self.CONFIG["lab"]["spawner_time_interval"]):
+                break
+
+        return
+
+
+    def _execute_checker(self) -> None:
+        while True:
+            command = f"powershell -ep bypass {VULN_CHECKER_PATH}"
+            # check_output raises CalledProcessError if exit-code is non-zero
+            try:
+                _ = sp_check_output(command, cwd = VULN_CHECKER_CWD, text = True)
+            
+            except sp_CalledProcessError:
+                print(f"{Fore.RED}{Style.BRIGHT}[-]{Style.RESET_ALL} Error: checker returned non-zero exit-code")
+            
+            response = self._load_json(GAME_STATE_PATH, encoding='utf-8-sig')
+            
+            if not response["status"]:
+                print(f"{Fore.RED}{Style.BRIGHT}[-]{Style.RESET_ALL} Error: {response['error']}")
+                continue
+            
+            if ("points" not in response["res"]) or ("game_ended" not in response["res"]):
+                print(f"{Fore.RED}{Style.BRIGHT}[-]{Style.RESET_ALL} Error: missing key points or game_ended")
+                continue
+            
+            self._update_game_state(response["res"])
+
+            if self.checker_thread.event.wait(self.CONFIG["lab"]["checker_time_interval"]):
+                break
+        return
+    
 
     def _update_game_state(self, state : dict) -> None:
         # Update current points
@@ -112,48 +187,14 @@ class Server():
         # Terminate threads if game ended
         if self.game_state.game_ended:
             self._stop_threads()
-
-        return
-
-    
-    def _execute_spawner(self) -> None:
-        while True:
-            random_number = random_randint(1, 5)
-            command = f"powershell -ep bypass {VULN_SPAWNER_PATH} -limit {random_number}"
-            # check_output raises CalledProcessError if exit-code is non-zero
-            res = sp_check_output(command, cwd = VULN_SPAWNER_CWD, text = True) # We should check this
-            print(res)
-
-            if self.spawner_thread.event.wait(self.CONFIG["lab"]["spawner_time_interval"]):
-                break
+            self._stop_timer()
 
         return
 
 
-    def _execute_checker(self) -> None:
-        while True:
-            command = f"powershell -ep bypass {VULN_CHECKER_PATH}"
-            # check_output raises CalledProcessError if exit-code is non-zero
-            res = sp_check_output(command, cwd = VULN_CHECKER_CWD, text = True) # We should check this
-            print(res)
-            
-            response = self._load_json(GAME_STATE_PATH, encoding='utf-8-sig')
-            
-            if not response["status"]:
-                print(f"error: {response['error']}")
-                continue
-            
-            if ("points" not in response["res"]) or ("game_ended" not in response["res"]):
-                print(f"error: missing key points or game_ended")
-                continue
-            
-            self._update_game_state(response["res"])
-
-            if self.checker_thread.event.wait(self.CONFIG["lab"]["checker_time_interval"]):
-                break
-        return
-
-
+    ##############################################
+    #                   CONFIG                   #
+    ##############################################
     def _load_json(self, json_path : str, encoding : str = "utf-8") -> dict:
         res = {"status" : False, "error" : "", "res" : ""}
 
@@ -228,6 +269,9 @@ class Server():
             # Threads
             self._start_threads() 
 
+            # Start timer
+            self._start_timer()
+
             return "Ok"
 
         return "Error"
@@ -254,8 +298,6 @@ class Server():
         return render_template("red_team.html", red_target=red_target)
 
 
-
-
 ##############################################       
 #                  DATACLASSES               #
 ##############################################
@@ -272,7 +314,6 @@ class GameState:
 class GameThread:
     thread : Thread
     event: Event = Event()
-
 
 
 ##############################################       
