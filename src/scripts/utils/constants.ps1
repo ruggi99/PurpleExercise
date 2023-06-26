@@ -1,4 +1,4 @@
-﻿$VULNS_PATH = '.\scripts\vulns\'
+$VULNS_PATH = '.\scripts\vulns\'
 $UTILS_PATH = '.\scripts\utils\'
 $CONFIG_PATH = ".\AD_network.json"
 
@@ -68,7 +68,7 @@ $TASK_NAMES = @(
     )
 
 
- $EXCLUSION_PATHS = @(
+$EXCLUSION_PATHS = @(
     "C:\Program Files\",
     "C:\Program Files (x86)\",
     "C:\ProgramData\",
@@ -85,4 +85,4 @@ $TASK_NAMES = @(
     )
 
 
-$COMMON_WORDS = "Software", "System", "Utility", "Application", "Manager", "Tools", "Program"
+$COMMON_WORDS = "Software","System","Utility","Application","Manager","Tools","Program"
