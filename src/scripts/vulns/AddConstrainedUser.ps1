@@ -12,9 +12,10 @@ $admin = New-Object System.Management.Automation.PSCredential -ArgumentList $($c
 
 # Generate accounts
 $accounts = [System.Collections.Generic.List[string]]@()
-for ($i=1; $i -le $using:limit; $i=$i+1 ) {
+for ($i=1; $i -lt $limit; $i++) {
     $sam_account_name, $_ = AddADUser
     $accounts.Add($sam_account_name)
+}
 
 # Add vuln
 Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock {
