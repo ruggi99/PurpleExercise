@@ -1,5 +1,6 @@
 param(
-    [string]$limit
+    [string]$limit,
+    [boolean]$add
 )
 
 Import-Module ".\scripts\utils\constants.ps1"
@@ -11,9 +12,15 @@ $admin = New-Object System.Management.Automation.PSCredential -ArgumentList $($c
 
 # Generate accounts
 $accounts = [System.Collections.Generic.List[string]]@()
-for ($i = 1; $i -lt $limit; $i++) {
-    $sam_account_name,$_ = AddADUser
-    $accounts.Add($sam_account_name)
+for ($i=1; $i -lt $limit; $i++) {
+    if ($add -eq $true) {
+        $username, $password = AddADUser
+    } else {
+        $json_users = Get-Content -Path $USERS_PATH -Raw | ConvertFrom-Json
+        $keys = $json_users.PSObject.Properties | Select-Object -ExpandProperty Name
+        $username = $keys | Get-Random
+    }
+    $accounts.Add($username)
 }
 
 # Add vuln

@@ -21,8 +21,15 @@ function AddADUser {
     Write-Host "With password $password"
 
     Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock {
-        New-ADUser -Name "$using:firstname $using:lastname" -GivenName $using:firstname -Surname $using:lastname -SamAccountName $using:SamAccountName -UserPrincipalName "$using:principalname@$using:Domain" -AccountPassword (ConvertTo-SecureString "$using:password" -AsPlainText -Force) -Passthru | Enable-ADAccount
+        New-ADUser -Name "$using:firstname $using:lastname" -GivenName $using:firstname -Surname $using:lastname -SamAccountName $using:SamAccountName -UserPrincipalName "$using:principalname@$using:Domain" -AccountPassword (ConvertTo-SecureString "$using:password" -AsPlainText -Force) -PassThru | Enable-ADAccount
     }
+         
+    $users = @{}        
+    if (Test-Path -Path $USERS_PATH) {
+        $users = Get-Content -Path $USERS_PATH -Raw | ConvertFrom-Json
+    } 
+    $users | Add-Member -MemberType NoteProperty -Name $SamAccountName -Value $password
+    $users | ConvertTo-Json | Out-File -Encoding utf8 $USERS_PATH
 
     return $SamAccountName,$password
 }

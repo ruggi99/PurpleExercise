@@ -30,9 +30,15 @@ for ($i = 0; $i -lt $limit; $i = $i + 1) {
     $random_script = Get-Random -InputObject $scripts
     $n = Get-Random -Maximum 10
 
+    if ( -not (Test-Path -Path $USERS_PATH) ) {
+        $bool = $true
+    } else {
+        $bool = @($true, $false) | Get-Random
+    }
+
     Write-Host "Executing $random_script"
 
-    Try {& "$($vulns_path)$($random_script)" -limit $n -hostname "$($random_asset).$($domain)"} Catch {continue}
+    Try {& "$($vulns_path)$($random_script)" -limit $n -hostname "$($random_asset).$($domain)" -add $bool} Catch {continue}
 }
 
 return 0
