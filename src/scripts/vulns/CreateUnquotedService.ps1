@@ -22,7 +22,7 @@ Invoke-Command -ComputerName $hostname -Credential $admin -ScriptBlock {
     New-Item -ItemType Directory -Path $using:full_folder_path
     "This is a demo" | Out-File $using:script_path
     icacls $using:script_path /grant *DA:F /inheritance:r /t | Out-Null
-    cmd /c Set-Content create $using:service_name binpath= "$using:script_path" type= own type= interact error= ignore start= auto | Out-Null
+    cmd /c sc create $using:service_name binpath= "$using:script_path" type= own type= interact error= ignore start= auto | Out-Null
 }
 .\subinacl.exe /SERVICE \\$hostname\$service_name /GRANT=EVERYONE=PTO | Out-Null
 
