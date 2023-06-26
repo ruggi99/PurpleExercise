@@ -38,6 +38,7 @@ if (-not $test.ProtocolAddress) {
 $admin = New-Object System.Management.Automation.PSCredential -ArgumentList $($config.domain.admin), (ConvertTo-SecureString -String $config.domain.password -AsPlainText -Force)
 
 $response = Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock { 
+    $points = 0
     $enterpriseAdmins = Get-AdGroupMember -Identity "Enterprise Admins" | Select samaccountname
     $win = $false
     foreach($EA in $enterpriseAdmins) {
@@ -83,6 +84,8 @@ $response = Invoke-Command -ComputerName $config.domain.dcip -Credential $admin 
         game_ended = $win
     }
 }
+
+$response["points"] += $points
 
 $response.PsObject.Properties.Remove("PSComputerName")
 $response.PsObject.Properties.Remove("RunspaceId")
