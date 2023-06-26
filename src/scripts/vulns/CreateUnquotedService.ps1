@@ -1,39 +1,28 @@
 ﻿param(
-    [string]$Hostname
+    [string]$hostname
 )
 
-# Define configuration file path
-$configPath = "AD_network.json"
+Import-Module ".\scripts\utils\constants.ps1"
+Import-Module "$($UTILS_PATH)config.ps1"
 
-# Check configuration file path
-if (-not (Test-Path -Path $configPath)) {
-    # Configuration file not found
-    throw "Configuration file not found. Check file path."
-}
-
-# Load configuration file
-$config = Get-Content -Path $configPath -Raw | ConvertFrom-Json
-
-# Define the domain name
-$Domain = $config.domain.name
 
 # Create credential object for the local admin and the domain admin
 $admin = New-Object System.Management.Automation.PSCredential -ArgumentList $($config.domain.admin), (ConvertTo-SecureString -String $config.domain.password -AsPlainText -Force)
 
-$commonWords = "Software", "System", "Utility", "Application", "Manager", "Tools", "Program"
 
-$randomFolderName = Get-Random -InputObject $commonWords
-$randomSubFolderName1 = Get-Random -InputObject $commonWords 
-$randomSubFolderName2 = Get-Random -InputObject $commonWords 
-$randomSubFolderPath = "C:\$randomFolderName\$randomSubFolderName1 $randomSubFolderName1"
-$scriptPath = "$randomSubFolderPath\script.exe"
-$ServiceName = $randomFolderName
+$root_folder_name = Get-Random -InputObject $COMMON_WORDS
+$first_sub_folder = Get-Random -InputObject $COMMON_WORDS 
+$second_sub_folder = Get-Random -InputObject $COMMON_WORDS 
+$full_folder_path = "C:\$root_folder_name\$first_sub_folder\$second_sub_folder"
+$script_path = "$full_folder_path\script.exe"
 
-Invoke-Command -ComputerName $Hostname -Credential $admin -ScriptBlock {
-	New-Item -ItemType Directory -Path $using:randomSubFolderPath
-	"This is a demo" | Out-File $using:scriptPath
-    icacls $using:scriptPath /grant *DA:F /inheritance:r /t | Out-Null
-    cmd /c sc create $using:ServiceName binpath= "$using:scriptPath" type= own type= interact error= ignore start= auto | Out-Null
+$service_name = $root_folder_name
+
+Invoke-Command -ComputerName $hostname -Credential $admin -ScriptBlock {
+	New-Item -ItemType Directory -Path $using:full_folder_path
+	"This is a demo" | Out-File $using:script_path
+    icacls $using:script_path /grant *DA:F /inheritance:r /t | Out-Null
+    cmd /c sc create $using:service_name binpath= "$using:script_path" type= own type= interact error= ignore start= auto | Out-Null
 }
-.\subinacl.exe /SERVICE \\$Hostname\$ServiceName /GRANT=EVERYONE=PTO | Out-Null
+.\subinacl.exe /SERVICE \\$hostname\$service_name /GRANT=EVERYONE=PTO | Out-Null
 

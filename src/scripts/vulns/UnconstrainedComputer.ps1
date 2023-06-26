@@ -1,33 +1,18 @@
-﻿
-param(
-    [string]$Hostname
-     )
+﻿param(
+    [string]$hostname
+)
 
-	# AD INITIALIZATION
-	# Define configuration file path
-	$configPath = ".\AD_network.json"
+Import-Module ".\scripts\utils\constants.ps1"
+Import-Module "$($UTILS_PATH)config.ps1"
 
-	# Check configuration file path	
-	if (-not (Test-Path -Path $configPath)) {
-  	# Configuration file not found
-  	throw "Configuration file not found. Check file path."  	
+
+# Create credential object for the local admin and the domain admin
+$admin = New-Object System.Management.Automation.PSCredential -ArgumentList $($config.domain.admin), (ConvertTo-SecureString -String $config.domain.password -AsPlainText -Force)
+
+
+Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock {
+	
+	$computer_account = (Get-ADComputer -Filter {DNSHostName -eq $using:hostname}).SamAccountName
+
+	Get-ADComputer -Identity $computer_account | Set-ADAccountControl -TrustedForDelegation $true
 }
-
-	# Load configuration file
-	$config = Get-Content -Path $configPath -Raw | ConvertFrom-Json
-
-	# Create credential object for the local admin and the domain admin
-	$admin = New-Object System.Management.Automation.PSCredential -ArgumentList $($config.domain.admin), (ConvertTo-SecureString -String $config.domain.password -AsPlainText -Force)
-
-    Write-Host $Hostname
-    
-    Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock {
-		
-		$ComputerAccount = (Get-ADComputer -Filter {DNSHostName -eq $using:Hostname}).SamAccountName
-
-        Get-ADComputer -Identity $ComputerAccount | Set-ADAccountControl -TrustedForDelegation $true
-    }
-      
-      
-
-

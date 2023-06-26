@@ -66,3 +66,23 @@ $TASK_NAMES = @(
         "DataValidation",
         "DatabaseMigration"
     )
+
+
+ $EXCLUSION_PATHS = @(
+    "C:\Program Files\",
+    "C:\Program Files (x86)\",
+    "C:\ProgramData\",
+    "C:\Windows\",
+    "C:\Windows\System32\",
+    "C:\Windows\System32\drivers\",
+    "C:\Windows\System32\config\",
+    "C:\Windows\Fonts\",
+    "C:\Windows\Temp\",
+    "C:\Windows\Installer\",
+    "C:\Windows\Microsoft.NET\",
+    "C:\Windows\Microsoft.NET\Framework\",
+    "C:\Windows\Microsoft.NET\Framework64\"
+    )
+
+
+$COMMON_WORDS = "Software", "System", "Utility", "Application", "Manager", "Tools", "Program"
