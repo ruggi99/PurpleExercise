@@ -17,7 +17,7 @@ if ($add -eq $true) {
     $json_users = Get-Content -Path $USERS_PATH -Raw | ConvertFrom-Json
     $keys = $json_users.PSObject.Properties | Select-Object -ExpandProperty Name
     $random_user = $keys | Get-Random
-    $password = $json_users.$username
+    $password = $json_users.$random_user
 }
 
 if (Get-Random -Maximum 2) {

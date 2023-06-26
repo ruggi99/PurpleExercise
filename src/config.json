@@ -10,6 +10,10 @@
     "lab" :
     {
         "red_target" : "test_user",
+		"user_credentials":  {
+								 "user":  "",
+								 "password":  ""
+							 },
         "max_points" : 1000,
         "max_seconds_available" : 3600,
         "spawner_time_interval" : 300,

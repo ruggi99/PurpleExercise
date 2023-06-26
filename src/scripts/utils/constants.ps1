@@ -2,6 +2,7 @@ $VULNS_PATH = '.\scripts\vulns\'
 $UTILS_PATH = '.\scripts\utils\'
 $CONFIG_PATH = ".\AD_network.json"
 $USERS_PATH = ".\users.json"
+$LAB_CONFIG_PATH = ".\config.json"
 
 $BAD_PASSWORDS= @('123123', 'baseball', 'abc123', 'football', 'monkey', 'letmein', '696969',
                   'shadow', 'master', '666666', 'qwertyuiop', '123321', 'mustang', '1234567890',

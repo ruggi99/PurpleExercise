@@ -1,5 +1,4 @@
 ﻿{
-  "win_condition" : "attacker",
   "domain": {
     "hostname": "dc",
     "name": "child.local",
