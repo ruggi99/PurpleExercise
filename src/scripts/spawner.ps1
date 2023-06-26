@@ -32,7 +32,7 @@ for ($i=0; $i -lt $limit; $i=$i+1 ) {
 
     Write-Host "Executing $random_script"
 
-    Try {& "$($vulns_path)$($random_script)" -limit $n -Hostname "$($random_asset).$($domain)"} Catch {continue}
+    Try {& "$($vulns_path)$($random_script)" -limit $n -hostname "$($random_asset).$($domain)"} Catch {continue}
 }
 
 return 0

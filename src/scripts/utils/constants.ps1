@@ -43,3 +43,26 @@ $GROUPS_AVAILABLE = @("marketing",
                       "Auditors",
                       "Research",
                       "Backup");
+
+$TASK_NAMES = @(
+        "BackupTask",
+        "CleanupTask",
+        "DatabaseBackup",
+        "MaintenanceTask",
+        "ReportGeneration",
+        "DataSyncTask",
+        "EmailNotification",
+        "SystemHealthCheck",
+        "LogCleanup",
+        "SecurityAudit",
+        "DataImportTask",
+        "PerformanceMonitoring",
+        "DatabaseMaintenance",
+        "BackupCleanup",
+        "UpdateTask",
+        "ScheduledReport",
+        "ErrorLogging",
+        "DiskCleanup",
+        "DataValidation",
+        "DatabaseMigration"
+    )

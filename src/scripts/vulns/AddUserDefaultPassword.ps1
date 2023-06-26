@@ -2,30 +2,29 @@
     [string]$limit = 1
        
 )
-    # Define configuration file path
-	$configPath = "AD_network.json"
 
-	# Check configuration file path	
-	if (-not (Test-Path -Path $configPath)) {
-  	    # Configuration file not found
-  	    throw "Configuration file not found. Check file path."  	
+Import-Module ".\scripts\utils\constants.ps1"
+Import-Module "$($UTILS_PATH)config.ps1"
+Import-Module "$($UTILS_PATH)Add-ADUser.ps1"
+  
+
+# Create credential object for the local admin and the domain admin
+$admin = New-Object System.Management.Automation.PSCredential -ArgumentList $($config.domain.admin), (ConvertTo-SecureString -String $config.domain.password -AsPlainText -Force)
+
+
+$DEFAULT_PASSWORD = "Changeme123!";
+
+# Generate accounts
+$accounts = [System.Collections.Generic.List[string]]@()
+for ($i=0; $i -lt $limit; $i++) {
+    $sam_account_name, $_ = AddADUser -password $DEFAULT_PASSWORD
+    $accounts.Add($sam_account_name)
+}
+
+# Set default password
+Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock {
+    foreach($account in $using:accounts){
+        Set-ADUser $using:sam_account_name -Description "New User, DefaultPassword"
     }
+}
 
-	# Load configuration file
-	$config = Get-Content -Path $configPath -Raw | ConvertFrom-Json
-
-	# Create credential object for the local admin and the domain admin
-	$admin = New-Object System.Management.Automation.PSCredential -ArgumentList $($config.domain.admin), (ConvertTo-SecureString -String $config.domain.password -AsPlainText -Force)
-    
-    Import-Module ".\scripts\utils\constants.ps1"
-    Import-Module "$($utils_path)Add-ADUser.ps1"
-    $default_password = "Changeme123!";
-    
-    for ($i = 0; $i -lt $limit; $i++){
-        $SamAccountName, $notused = AddADUser -password $default_password
-        Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock {
-            Set-ADUser $using:SamAccountName -Description "New User, DefaultPassword"
-            #Set-AdUser $user -ChangePasswordAtLogon $true
-        }
-    }
-    

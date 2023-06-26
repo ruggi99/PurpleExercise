@@ -4,8 +4,8 @@
 
 
 Import-Module ".\scripts\utils\constants.ps1"
-Import-Module "$($UTILS_PATH)Add-ADUser.ps1"
 Import-Module "$($UTILS_PATH)config.ps1"
+Import-Module "$($UTILS_PATH)Add-ADUser.ps1"
 
 
 # Create credential object for the local admin
