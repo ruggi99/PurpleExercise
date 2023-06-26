@@ -1,14 +1,5 @@
-﻿# Define configuration file path
-$configPath = "AD_network.json"
-
-# Check configuration file path	
-if (-not (Test-Path -Path $configPath)) {
-  	# Configuration file not found
-  	throw "Configuration file not found. Check file path."  	
-}
-
-# Load configuration file
-$config = Get-Content -Path $configPath -Raw | ConvertFrom-Json
+﻿Import-Module ".\scripts\utils\constants.ps1"
+Import-Module "$($UTILS_PATH)config.ps1"
 
 
 # Create credential object for the local admin and the domain admin
@@ -22,26 +13,10 @@ Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock
     $groups_needed = 3
     $groups = [System.Collections.Generic.List[string]]@()
 
-    $groups_available = [System.Collections.Generic.List[string]]@("marketing",
-                                                                   "sales",
-                                                                   "accounting",
-                                                                   "Office Admin",
-                                                                   "IT Admins",
-                                                                   "Executives",
-                                                                   "Senior management",
-                                                                   "Project management",
-                                                                   "Developers",
-                                                                   "Operations",
-                                                                   "Support",
-                                                                   "Finance",
-                                                                   "HumanResources",
-                                                                   "QA",
-                                                                   "HelpDesk",
-                                                                   "Architects",
-                                                                   "DBA",
-                                                                   "Auditors",
-                                                                   "Research",
-                                                                   "Backup");
+    $groups_available = [System.Collections.Generic.List[string]]@();
+    foreach($group in $GROUPS_AVAILABLE){
+        $groups_available.Add($group)
+    }
 
     for ($i = 0; $i -lt $groups_needed; $i=$i+1){
         # Get random group
@@ -62,8 +37,6 @@ Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock
     }
 
     # Create BadACL
-    $BadACL = @('GenericAll','GenericWrite','WriteOwner','WriteDACL','Self','WriteProperty');
-
     function VulnAD-AddACL {
         [CmdletBinding()]
         param(
@@ -91,27 +64,27 @@ Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock
     }
 
     # Create first BadACL
-    $abuse = Get-Random -InputObject $BadACL
-    $DstGroup = Get-ADGroup -Identity $groups[0]
-    $SrcGroup = Get-ADGroup -Identity $groups[1]
-    VulnAD-AddACL -Source $SrcGroup.sid -Destination $DstGroup.DistinguishedName -Rights $abuse
-    Write-Host "BadACL $abuse $DstGroup to $SrcGroup"
+    $abuse = Get-Random -InputObject $BAD_ACL
+    $dst_group = Get-ADGroup -Identity $groups[0]
+    $src_group = Get-ADGroup -Identity $groups[1]
+    VulnAD-AddACL -Source $src_group.sid -Destination $dst_group.DistinguishedName -Rights $abuse
+    Write-Host "BadACL $abuse $dst_group to $src_group"
 
 
     # Create second BadACL
-    $abuse = Get-Random -InputObject $BadACL;
+    $abuse = Get-Random -InputObject $BAD_ACL;
     $existing_users = Get-ADUser -Filter * | Select SamAccountName
-    $randomuser = Get-Random -InputObject $existing_users
+    $random_user = Get-Random -InputObject $existing_users
     $second_badacl_group = $groups[2]
 
     if ((Get-Random -Maximum 2)){
-        $Dstobj = Get-ADUser -Identity $randomuser.SamAccountName
-        $Srcobj = Get-ADGroup -Identity $second_badacl_group
+        $dst_obj = Get-ADUser -Identity $random_user.SamAccountName
+        $src_obj = Get-ADGroup -Identity $second_badacl_group
     }else{
-        $Srcobj = Get-ADUser -Identity $randomuser.SamAccountName
-        $Dstobj = Get-ADGroup -Identity $second_badacl_group
+        $src_obj = Get-ADUser -Identity $random_user.SamAccountName
+        $dst_obj = Get-ADGroup -Identity $second_badacl_group
     }
-    VulnAD-AddACL -Source $Srcobj.sid -Destination $Dstobj.DistinguishedName -Rights $abuse 
-    Write-Host "BadACL $abuse $($randomuser.SamAccountName) and $second_badacl_group"
+    VulnAD-AddACL -Source $src_obj.sid -Destination $dst_obj.DistinguishedName -Rights $abuse 
+    Write-Host "BadACL $abuse $($random_user.SamAccountName) and $second_badacl_group"
 }
 

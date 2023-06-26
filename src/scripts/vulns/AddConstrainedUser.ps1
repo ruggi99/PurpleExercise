@@ -1,18 +1,17 @@
 ﻿param(
-    [string]$Hostname,
     [string]$limit
 )
 
 Import-Module ".\scripts\utils\constants.ps1"
-Import-Module "$($utils_path)Add-ADUser.ps1"
-Import-Module "$($utils_path)config.ps1"
+Import-Module "$($UTILS_PATH)Add-ADUser.ps1"
+Import-Module "$($UTILS_PATH)config.ps1"
 
 # Create credential object for the local admin and the domain admin
 $admin = New-Object System.Management.Automation.PSCredential -ArgumentList $($config.domain.admin), (ConvertTo-SecureString -String $config.domain.password -AsPlainText -Force)
 
 # Generate accounts
 $accounts = [System.Collections.Generic.List[string]]@()
-for ($i=1; $i -lt $limit; $i++) {
+for ($i=1; $i -le $using:limit; $i++) {
     $sam_account_name, $_ = AddADUser
     $accounts.Add($sam_account_name)
 }
