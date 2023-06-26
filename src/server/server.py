@@ -55,8 +55,7 @@ class Server():
         self.START_PASSWORD = self.CONFIG["server"]["start_password"]
         self.RED_PASSWORD   = self.CONFIG["server"]["red_password"]
 
-        self.game_state = GameState(points = self.CONFIG["lab"]["max_points"],
-                                    initial_points = self.CONFIG["lab"]["max_points"],
+        self.game_state = GameState(initial_points = self.CONFIG["lab"]["max_points"],
                                     max_seconds_available = self.CONFIG["lab"]["max_seconds_available"]
                           )
         
@@ -91,6 +90,20 @@ class Server():
     ##############################################
     #                START / STOP                #
     ##############################################
+    def _start_game(self) -> None:
+        print(f"{Fore.GREEN}{Style.BRIGHT}[+]{Style.RESET_ALL} Starting game")
+        self.game_state.start()
+        self._start_threads()
+        self._start_timer()
+    
+
+    def _end_game(self) -> None:
+        print(f"{Fore.GREEN}{Style.BRIGHT}[+]{Style.RESET_ALL} Stopping game")
+        self.game_state.stop()
+        self._stop_threads()
+        self._stop_timer()
+    
+
     def _start_threads(self) -> None:
         self.spawner_thread.event.clear()
         self.spawner_thread.thread.start()
@@ -105,18 +118,16 @@ class Server():
     def _stop_threads(self) -> None:
         self.spawner_thread.event.set()
         self.spawner_thread.thread.join()
+        print(f"{Fore.GREEN}{Style.BRIGHT}[+]{Style.RESET_ALL} Spawner thread stopped")
 
         self.checker_thread.event.set()
         self.checker_thread.thread.join()
+        print(f"{Fore.GREEN}{Style.BRIGHT}[+]{Style.RESET_ALL} Spawner thread stopped")
         return
     
 
     def _start_timer(self) -> None:
-        def end_game() -> None:
-            self.game_state.game_ended = True
-            self._stop_threads()
-
-        self.timer = Timer(self.CONFIG["lab"]["max_seconds_available"], end_game)
+        self.timer = Timer(self.CONFIG["lab"]["max_seconds_available"], self._end_game)
         self.timer.start()
         return
     
@@ -178,16 +189,8 @@ class Server():
         self.game_state.points -= state["points"]
         
         # Update end game
-        if self.game_state.points < 0:
-            self.game_state.game_ended = True
-
-        else:
-            self.game_state.game_ended = state["game_ended"]
-        
-        # Terminate threads if game ended
-        if self.game_state.game_ended:
-            self._stop_threads()
-            self._stop_timer()
+        if self.game_state.points < 0 or state["game_ended"]:
+            self._end_game()
 
         return
 
@@ -263,14 +266,7 @@ class Server():
             return "Error"
 
         if flask_request.form["password"] == self.START_PASSWORD:
-            # Set start time
-            self.game_state.start_time = time_time()
-            
-            # Threads
-            self._start_threads() 
-
-            # Start timer
-            self._start_timer()
+            self._start_game()
 
             return "Ok"
 
@@ -303,11 +299,19 @@ class Server():
 ##############################################
 @dataclass
 class GameState:
-    points : int
     initial_points : int
     max_seconds_available: int
+    points : int = 0
     start_time : float = 0
     game_ended : bool = False
+
+    def start(self) -> None:
+        self.points = self.initial_points
+        self.start_time = time_time()
+        self.game_ended = False
+    
+    def stop(self) -> None:
+        self.game_ended = True
 
 
 @dataclass
