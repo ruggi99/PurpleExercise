@@ -22,7 +22,7 @@ for ($i=0; $i -lt $limit; $i=$i+1 ) {
 # Add new kerberoastable users 
 Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock {
     foreach($account in $using:accounts){
-        Set-ADAccountControl -Identity $using:account -DoesNotRequirePreAuth 1
+        Set-ADAccountControl -Identity $account -DoesNotRequirePreAuth 1
     }
 
 }

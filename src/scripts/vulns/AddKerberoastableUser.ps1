@@ -24,7 +24,7 @@ for ($i=0; $i -lt $limit; $i=$i+1 ) {
 Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock {
     foreach($account in $using:accounts){
         $selected_spn = (Get-Random -InputObject $using:SPNS)
-        setspn $using:SamAccountName -s $selected_spn | Out-Null
+        setspn $account -s $selected_spn | Out-Null
     }
 
 }

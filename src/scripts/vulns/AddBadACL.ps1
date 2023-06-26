@@ -14,7 +14,7 @@ Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock
     $groups = [System.Collections.Generic.List[string]]@()
 
     $groups_available = [System.Collections.Generic.List[string]]@();
-    foreach($group in $GROUPS_AVAILABLE){
+    foreach($group in $using:GROUPS_AVAILABLE){
         $groups_available.Add($group)
     }
 
@@ -64,7 +64,7 @@ Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock
     }
 
     # Create first BadACL
-    $abuse = Get-Random -InputObject $BAD_ACL
+    $abuse = Get-Random -InputObject $using:BAD_ACL
     $dst_group = Get-ADGroup -Identity $groups[0]
     $src_group = Get-ADGroup -Identity $groups[1]
     VulnAD-AddACL -Source $src_group.sid -Destination $dst_group.DistinguishedName -Rights $abuse
@@ -72,7 +72,7 @@ Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock
 
 
     # Create second BadACL
-    $abuse = Get-Random -InputObject $BAD_ACL;
+    $abuse = Get-Random -InputObject $using:BAD_ACL;
     $existing_users = Get-ADUser -Filter * | Select SamAccountName
     $random_user = Get-Random -InputObject $existing_users
     $second_badacl_group = $groups[2]
