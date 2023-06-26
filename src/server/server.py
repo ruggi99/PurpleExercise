@@ -291,7 +291,9 @@ class Server():
             return "Error"
 
         red_target = self.CONFIG["lab"]["red_target"]
-        return render_template("red_team.html", red_target=red_target)
+        red_user = self.CONFIG["lab"]["user_credentials"]["user"]
+        red_password = self.CONFIG["lab"]["user_credentials"]["password"]
+        return render_template("red_team.html", red_target=red_target, red_user=red_user, red_password=red_password)
 
 
 ##############################################       
