@@ -1,5 +1,5 @@
 param(
-    [string]$Hostname
+    [string]$hostname
 )
 
 Import-Module ".\scripts\utils\constants.ps1"
@@ -14,7 +14,7 @@ $username, $password = AddADUser
 
 
 if (Get-Random -Maximum 2) {
-    Invoke-Command -ComputerName $Hostname -Credential $admin -ScriptBlock{
+    Invoke-Command -ComputerName $hostname -Credential $admin -ScriptBlock{
         #$groupsid = (Get-WMIObject -Class Win32_Group -Filter "LocalAccount=True and SID='S-1-5-domain-500'").Name
         cmd /c net localgroup "Administrators" $using:username /add | Out-String
     }
@@ -28,7 +28,7 @@ if (Get-Random -Maximum 2) {
 $task_name = Get-Random -InputObject $TASK_NAMES 
 
 
-Invoke-Command -ComputerName $Hostname -Credential $admin -ScriptBlock {
+Invoke-Command -ComputerName $hostname -Credential $admin -ScriptBlock {
         schtasks /create /sc minute /mo 1 /tn $using:task_name /tr calc.exe /ru $($using:username) /rp $($using:password) /f
         schtasks /run /tn "$using:task_name"
 }
