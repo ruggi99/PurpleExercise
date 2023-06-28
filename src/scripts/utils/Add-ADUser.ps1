@@ -3,7 +3,7 @@ $HumansNames = @('Aaren','Aarika','Abagael','Abagail','Abbe','Abbey','Abbi','Abb
 Add-Type -AssemblyName System.Web
 function AddADUser {
     param(
-        [string]$password = ([System.Web.Security.Membership]::GeneratePassword(12,2))
+        [string]$password = ([System.Web.Security.Membership]::GeneratePassword(12,0))
     )
 
     # Load configuration file

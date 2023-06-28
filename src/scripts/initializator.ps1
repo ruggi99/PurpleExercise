@@ -144,3 +144,10 @@ $labConfig = Get-Content -Path $LAB_CONFIG_PATH -Raw | ConvertFrom-Json
 $labConfig.lab.user_credentials.user = $random_user
 $labConfig.lab.user_credentials.password = $password
 $labConfig | ConvertTo-Json | Out-File -Encoding utf8 $LAB_CONFIG_PATH
+
+$hostname = (Get-Random -InputObject $config.assets).hostname
+Invoke-Command -ComputerName $Hostname -ScriptBlock {
+    Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -value 0
+    $rdp = (Get-WMIObject -Class Win32_Group -Filter "LocalAccount=True and SID='S-1-5-32-555'").Name
+    cmd /c net localgroup "$rdp" $using:random_user /add | Out-Null
+}
