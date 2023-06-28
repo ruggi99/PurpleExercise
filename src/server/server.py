@@ -146,7 +146,8 @@ class Server():
             command = f"powershell -ep bypass {VULN_SPAWNER_PATH} -limit {random_number}"
             # check_output raises CalledProcessError if exit-code is non-zero
             try:
-                _ = sp_check_output(command, cwd = VULN_SPAWNER_CWD, text = True)
+                res = sp_check_output(command, cwd = VULN_SPAWNER_CWD, text = True)
+                print(res)
 
             except sp_CalledProcessError:
                 print(f"{Fore.RED}{Style.BRIGHT}[-]{Style.RESET_ALL} Error: spawner returned non-zero exit-code")

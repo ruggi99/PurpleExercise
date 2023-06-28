@@ -38,7 +38,7 @@ for ($i = 0; $i -lt $limit; $i = $i + 1) {
 
     Write-Host "Executing $random_script"
 
-    Try {& "$($vulns_path)$($random_script)" -limit $n -hostname "$($random_asset).$($domain)" -add $bool} Catch {continue}
+    & "$($vulns_path)$($random_script)" -limit $n -hostname "$($random_asset).$($domain)" -add $bool
 }
 
 return 0
