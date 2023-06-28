@@ -46,7 +46,7 @@ $installState = $(Invoke-Command -ComputerName $config.domain.dcip -Credential $
 
 if ($installState -eq "Installed") {
     # Active Directory is already installed
-    Write-Output "Active Directory has been already installed on parent domain."
+    Write-Output "Active Directory has been already installed on domain."
 } else {
     # Active Directory is not installed
     Write-Info "Active Directory is not installed yet on domain."
@@ -145,8 +145,8 @@ $labConfig.lab.user_credentials.user = $random_user
 $labConfig.lab.user_credentials.password = $password
 $labConfig | ConvertTo-Json | Out-File -Encoding utf8 $LAB_CONFIG_PATH
 
-$hostname = (Get-Random -InputObject $config.assets).hostname
-Invoke-Command -ComputerName $Hostname -ScriptBlock {
+$ip = (Get-Random -InputObject $config.assets).ip
+Invoke-Command -ComputerName $ip -ScriptBlock {
     Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -value 0
     $rdp = (Get-WMIObject -Class Win32_Group -Filter "LocalAccount=True and SID='S-1-5-32-555'").Name
     cmd /c net localgroup "$rdp" $using:random_user /add | Out-Null
