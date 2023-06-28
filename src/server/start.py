@@ -16,7 +16,7 @@ def load_json(json_path : str) -> dict:
         return res
 
     # Read json
-    with open(json_path, "r") as fd:
+    with open(json_path, "r", encoding='utf-8-sig') as fd:
         json_file = fd.read()
     
     # Parse json

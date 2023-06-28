@@ -34,7 +34,7 @@ class Server():
         self.APP = Flask(__name__)
         
         # Load config
-        res = self._load_json(CONFIG_JSON_PATH)
+        res = self._load_json(CONFIG_JSON_PATH, encoding='utf-8-sig')
         
         if not res["status"]:
             raise ValueError(res["error"])
