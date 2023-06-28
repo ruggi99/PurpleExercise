@@ -1,6 +1,6 @@
-Import-Module ".\scripts\utils\constants.ps1"
-Import-Module "$($UTILS_PATH)config.ps1"
-Import-Module "$($UTILS_PATH)Add-ADUser.ps1"
+Import-Module -force ".\scripts\utils\constants.ps1"
+Import-Module -force "$($UTILS_PATH)config.ps1"
+Import-Module -force "$($UTILS_PATH)Add-ADUser.ps1"
 
 $Global:Domain = "";
 
@@ -67,7 +67,7 @@ if ($installState -eq "Installed") {
         # Da eseguire nel dc
         Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock {
             Install-WindowsFeature AD-domain-services
-            Import-Module ADDSDeployment
+            Import-Module -force ADDSDeployment
 		    Install-ADDSForest -CreateDnsDelegation:$false -DatabasePath "C:\\Windows\\NTDS" -DomainMode "7" -DomainName $using:config.domain.name -DomainNetbiosName $using:config.domain.netbiosName -ForestMode "7" -InstallDns:$true -LogPath "C:\\Windows\\NTDS" -NoRebootOnCompletion:$false -SysvolPath "C:\\Windows\\SYSVOL" -SafeModeAdministratorPassword (ConvertTo-SecureString "$using:config.domain.password" -AsPlainText -Force) -Force:$true
         }
         Write-Good "Active Directory installed on DC."

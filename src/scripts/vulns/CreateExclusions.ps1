@@ -3,8 +3,8 @@ param(
     [string]$limit
 )
 
-Import-Module ".\scripts\utils\constants.ps1"
-Import-Module "$($UTILS_PATH)config.ps1"
+Import-Module -force ".\scripts\utils\constants.ps1"
+Import-Module -force "$($UTILS_PATH)config.ps1"
 
 
 # Create credential object for the local admin and the domain admin

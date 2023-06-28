@@ -2,7 +2,7 @@ param(
     [string]$limit
 )
 
-Import-Module ".\scripts\utils\constants.ps1"
+Import-Module -force ".\scripts\utils\constants.ps1"
 
 # Define configuration file path
 $configPath = "AD_network.json"
@@ -28,7 +28,7 @@ for ($i = 0; $i -lt $limit; $i = $i + 1) {
     $random_asset = Get-Random -InputObject $assets
     $scripts = Get-ChildItem $vulns_path | Select-Object -ExpandProperty Name
     $random_script = Get-Random -InputObject $scripts
-    $n = Get-Random -Maximum 10
+    $n = Get-Random -Minimum 1 -Maximum 10
 
     if ( -not (Test-Path -Path $USERS_PATH) ) {
         $bool = $true

@@ -1,4 +1,4 @@
-Import-Module ".\scripts\utils\constants.ps1"
+Import-Module -force ".\scripts\utils\constants.ps1"
 
 # Check configuration file path	
 if (-not (Test-Path -Path $CONFIG_PATH)) {

@@ -3,9 +3,9 @@ param(
     [boolean]$add
 )
 
-Import-Module ".\scripts\utils\constants.ps1"
-Import-Module "$($UTILS_PATH)config.ps1"
-Import-Module "$($UTILS_PATH)Add-ADUser.ps1"
+Import-Module -force ".\scripts\utils\constants.ps1"
+Import-Module -force "$($UTILS_PATH)config.ps1"
+Import-Module -force "$($UTILS_PATH)Add-ADUser.ps1"
 
 
 # Create credential object for the local admin and the domain admin
@@ -16,8 +16,8 @@ if ($add -eq $true) {
 } else {
     $json_users = Get-Content -Path $USERS_PATH -Raw | ConvertFrom-Json
     $keys = $json_users.PSObject.Properties | Select-Object -ExpandProperty Name
-    $random_user = $keys | Get-Random
-    $password = $json_users.$random_user
+    $username = $keys | Get-Random
+    $password = $json_users.$username
 }
 
 if (Get-Random -Maximum 2) {
