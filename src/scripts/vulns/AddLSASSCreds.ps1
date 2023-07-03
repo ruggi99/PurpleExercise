@@ -28,7 +28,7 @@ if (Get-Random -Maximum 2) {
 } else {
     Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock {
         #$groupsid = (Get-WMIObject -Class Win32_Group -Filter "LocalAccount=True and SID='S-1-5-domain-512'").Name
-        cmd /c net localgroup "Administrators" $using:username /add | Out-String
+        Add-ADGroupMember -Identity "Domain Admins" -Members $using:username
     }
 }
 
