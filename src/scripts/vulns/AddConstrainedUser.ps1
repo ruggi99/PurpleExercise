@@ -8,7 +8,7 @@ Import-Module -force "$($UTILS_PATH)Add-ADUser.ps1"
 Import-Module -force "$($UTILS_PATH)config.ps1"
 
 # Create credential object for the local admin and the domain admin
-$admin = New-Object System.Management.Automation.PSCredential -ArgumentList $($config.domain.admin),(ConvertTo-SecureString -String $config.domain.password -AsPlainText -Force)
+$admin = New-Object System.Management.Automation.PSCredential -ArgumentList "$($config.domain.admin)@$($config.domain.name)",(ConvertTo-SecureString -String $config.domain.password -AsPlainText -Force)
 
 # Generate accounts
 $accounts = [System.Collections.Generic.List[string]]@()
