@@ -17,7 +17,7 @@ if (-not (Test-Path -Path $configPath)) {
 $config = Get-Content -Path $configPath -Raw | ConvertFrom-Json
 
 # Create credential object for the local admin
-$admin = New-Object System.Management.Automation.PSCredential -ArgumentList $($config.domain.admin),(ConvertTo-SecureString -String $config.domain.password -AsPlainText -Force)
+$admin = New-Object System.Management.Automation.PSCredential -ArgumentList "$($config.domain.admin)@$($config.domain.name)",(ConvertTo-SecureString -String $config.domain.password -AsPlainText -Force)
 
 # Define the domain name
 $Domain = $config.domain.name
