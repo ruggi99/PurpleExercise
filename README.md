@@ -36,7 +36,7 @@ Before adding assets to the scenario, please ensure that the following prerequis
 
 ```
 winrm quickconfig -q
-winrm set winrm/config/client @{TrustedHosts="*"}
+winrm set winrm/config/client '@{TrustedHosts="*"}'
 ```
 
 ## Start Up
