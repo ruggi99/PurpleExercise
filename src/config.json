@@ -1,22 +1,19 @@
-{
-    "server" : 
-    {
-        "ip" : "127.0.0.1",
-        "port" : 5000,
-        "start_password" : "test",
-        "red_password" : "test"
+﻿{
+    "server": {
+        "ip": "0.0.0.0",
+        "port": 5000,
+        "start_password": "test",
+        "red_password": "test"
     },
-
-    "lab" :
-    {
-        "red_target" : "test_user",
-		"user_credentials":  {
-								 "user":  "",
-								 "password":  ""
-							 },
-        "max_points" : 1000,
-        "max_seconds_available" : 3600,
-        "spawner_time_interval" : 300,
-        "checker_time_interval" : 60
+    "lab": {
+        "red_target": "test_user",
+        "user_credentials": {
+            "user": "",
+            "password": ""
+        },
+        "max_points": 1000,
+        "max_seconds_available": 3600,
+        "spawner_time_interval": 300,
+        "checker_time_interval": 60
     }
 }
