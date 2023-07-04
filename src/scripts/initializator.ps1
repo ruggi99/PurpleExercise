@@ -132,7 +132,11 @@ cmd /c pause
 
 # Create a set of users
 for ($i = 0; $i -lt 10; $i++) {
-    $sam_account_name,$_ = AddADUser
+    switch(Get-Random -Maximum 3) {
+        0 { .\scripts\vulns\AddUserDefaultPassword.ps1 -limit 1 }
+        1 { .\scripts\vulns\AddUserPwdInObjectDescription.ps1 -limit 1 }
+        2 { AddAdUser }
+    }
 }
 
 $json_users = Get-Content -Path $USERS_PATH -Raw | ConvertFrom-Json
