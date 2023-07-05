@@ -112,13 +112,17 @@ foreach ($asset in $config.assets) {
 
     # Make domain join
     Invoke-Command -ComputerName $asset.ip -Credential $creds -ScriptBlock {
-  	netsh advfirewall set allprofiles state off | Out-Null
+  	    netsh advfirewall set allprofiles state off | Out-Null
         $eth = Get-NetAdapter -Name * | Where-Object { $_.Status -eq 'Up' } | Format-Table Name -HideTableHeaders | Out-String
         Set-DnsClientServerAddress -InterfaceAlias $eth.Trim() -ServerAddresses ($using:config.domain.dcip)
-    Add-Computer -DomainName $using:config.domain.name -Credential $using:admin   
+        Add-Computer -DomainName $using:config.domain.name -Credential $using:admin   
     }
 
-    Rename-Computer -ComputerName $asset.ip -NewName $asset.hostname -DomainCredential $admin -Restart -Force
+    Try {
+        Rename-Computer -ComputerName $asset.ip -NewName $asset.hostname -DomainCredential $admin -Restart -Force -ErrorAction Stop
+    } Catch {
+        Restart-Computer -ComputerName $asset.ip -Credential $admin -Force
+    }
 
     if ($errmsg.Count -gt 0) {
         Write-Bad "Asset $($asset.hostname) not added to domain $($Global:Domain)"
