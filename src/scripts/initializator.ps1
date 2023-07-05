@@ -102,7 +102,7 @@ foreach ($asset in $config.assets) {
     } while ($repeat)
 }
 
-# Create credential object for the local admin
+# Create credential object for the domain admin
 $admin = New-Object System.Management.Automation.PSCredential -ArgumentList "$($config.domain.admin)@$($config.domain.name)",(ConvertTo-SecureString -String $config.domain.password -AsPlainText -Force)
 
 # Attempt to join for each asset
@@ -153,9 +153,29 @@ $labConfig.lab.user_credentials.user = $random_user
 $labConfig.lab.user_credentials.password = $password
 $labConfig | ConvertTo-Json | Out-File -Encoding utf8 $LAB_CONFIG_PATH
 
-$ip = (Get-Random -InputObject $config.assets).ip
-Invoke-Command -ComputerName $ip -ScriptBlock {
-    Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -value 0
-    $rdp = (Get-WMIObject -Class Win32_Group -Filter "LocalAccount=True and SID='S-1-5-32-555'").Name
-    cmd /c net localgroup "$rdp" $using:random_user /add | Out-Null
+# Test asset availability using local admin creds
+foreach ($asset in $config.assets) {
+    # Create credential object for the asset admin
+    $creds = New-Object System.Management.Automation.PSCredential -ArgumentList "$($config.domain.admin)@$($config.domain.name)",(ConvertTo-SecureString -String $asset.password -AsPlainText -Force)
+
+    do {
+        $repeat = $false;
+        $err = Invoke-Command -ComputerName $asset.ip -Credential $creds -ScriptBlock { whoami }
+        if ($err -eq $null) {
+            $repeat = $true
+            Write-Bad "$($asset.hostname) ($($asset.ip)) test connection failed"
+        } else {
+            Write-Good "$($asset.hostname) ($($asset.ip)) test connection passed"
+        }
+    } while ($repeat)
+}
+
+
+foreach ($asset in $config.assets) {
+    Invoke-Command -ComputerName $asset.ip -Credential $admin -ScriptBlock {
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -value 0
+        $rdp = (Get-WMIObject -Class Win32_Group -Filter "LocalAccount=True and SID='S-1-5-32-555'").Name
+        cmd /c net localgroup "$rdp" $using:random_user /add | Out-Null
+    }
+    Write-Good "$random_user added to $($asset.hostname) to RDP group"
 }
