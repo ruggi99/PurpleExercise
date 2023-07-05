@@ -57,6 +57,11 @@
   {#if data != null}
     {#if data.game_ended}
       <h2 style="text-align:center;">La partita è finita</h2>
+      {#if data.won == "red"}
+        <h2 style="text-align:center;">Ha vinto il Red Team</h2>
+      {:else}
+        <h2 style="text-align:center;">Ha vinto il Blue Team</h2>
+      {/if}
     {:else if data.start_time == 0}
       <h2 style="text-align:center;">La partita deve ancora cominciare</h2>
     {:else}

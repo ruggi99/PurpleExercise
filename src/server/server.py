@@ -97,9 +97,9 @@ class Server():
         self._start_timer()
     
 
-    def _end_game(self) -> None:
+    def _end_game(self, won: str) -> None:
         print(f"{Fore.GREEN}{Style.BRIGHT}[+]{Style.RESET_ALL} Stopping game")
-        self.game_state.stop()
+        self.game_state.stop(won)
         self._stop_threads()
         self._stop_timer()
     
@@ -127,7 +127,7 @@ class Server():
     
 
     def _start_timer(self) -> None:
-        self.timer = Timer(self.CONFIG["lab"]["max_seconds_available"], self._end_game)
+        self.timer = Timer(self.CONFIG["lab"]["max_seconds_available"], self._end_game, ("blue",))
         self.timer.start()
         return
     
@@ -191,7 +191,7 @@ class Server():
         
         # Update end game
         if self.game_state.points < 0 or state["game_ended"]:
-            self._end_game()
+            self._end_game("red")
 
         return
 
@@ -307,14 +307,17 @@ class GameState:
     points : int = 0
     start_time : float = 0
     game_ended : bool = False
+    won: str = ""
 
     def start(self) -> None:
         self.points = self.initial_points
         self.start_time = time_time()
         self.game_ended = False
+        self.won = ""
     
-    def stop(self) -> None:
+    def stop(self, won: str) -> None:
         self.game_ended = True
+        self.won = won
 
 
 @dataclass
