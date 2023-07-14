@@ -136,6 +136,8 @@ foreach ($asset in $config.assets) {
 Write-Info "Waiting after VM restarts"
 cmd /c pause
 
+rm $USERS_PATH
+
 # Create a set of users
 for ($i = 0; $i -lt 10; $i++) {
     switch(Get-Random -Maximum 3) {
