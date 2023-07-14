@@ -174,7 +174,10 @@ foreach ($asset in $config.assets) {
 
 
 foreach ($asset in $config.assets) {
-    Invoke-Command -ComputerName $asset.ip -Credential $admin -ScriptBlock {
+    # Create credential object for the local admin
+    $local_admin = New-Object System.Management.Automation.PSCredential -ArgumentList "$($asset.username)",(ConvertTo-SecureString -String $asset.password -AsPlainText -Force)
+
+    Invoke-Command -ComputerName $asset.ip -Credential $local_admin -ScriptBlock {
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -value 0
         $rdp = (Get-WMIObject -Class Win32_Group -Filter "LocalAccount=True and SID='S-1-5-32-555'").Name
         cmd /c net localgroup "$rdp" $using:random_user /add | Out-Null
