@@ -2,8 +2,6 @@ Import-Module -force ".\scripts\utils\constants.ps1"
 Import-Module -force "$($UTILS_PATH)config.ps1"
 Import-Module -force "$($UTILS_PATH)Add-ADUser.ps1"
 
-$Global:Domain = "";
-
 function Write-Good { param($String) Write-Host $Global:PlusLine $String -ForegroundColor 'Green' }
 function Write-Bad { param($String) Write-Host $Global:ErrorLine $String -ForegroundColor 'red' }
 function Write-Info { param($String) Write-Host $Global:InfoLine $String -ForegroundColor 'gray' }
@@ -136,7 +134,7 @@ foreach ($asset in $config.assets) {
 Write-Info "Waiting after VM restarts"
 cmd /c pause
 
-rm $USERS_PATH
+rm $USERS_PATH -ErrorAction Ignore
 
 # Create a set of users
 for ($i = 0; $i -lt 10; $i++) {
