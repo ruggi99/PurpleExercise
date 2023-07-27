@@ -121,7 +121,7 @@ foreach ($asset in $config.assets) {
     Try {
         Rename-Computer -ComputerName $asset.ip -NewName $asset.hostname -DomainCredential $admin -Restart -Force -ErrorAction Stop
     } Catch {
-        Restart-Computer -ComputerName $asset.ip -Credential $admin -Force
+        Restart-Computer -ComputerName $asset.ip -Credential $creds -Force
     }
 
     if ($errmsg.Count -gt 0) {
@@ -158,7 +158,7 @@ $labConfig | ConvertTo-Json | Out-File -Encoding utf8 $LAB_CONFIG_PATH
 # Test asset availability using local admin creds
 foreach ($asset in $config.assets) {
     # Create credential object for the asset admin
-    $creds = New-Object System.Management.Automation.PSCredential -ArgumentList "$($config.domain.admin)@$($config.domain.name)",(ConvertTo-SecureString -String $asset.password -AsPlainText -Force)
+    $creds = New-Object System.Management.Automation.PSCredential -ArgumentList "$($asset.username)",(ConvertTo-SecureString -String $asset.password -AsPlainText -Force)
 
     do {
         $repeat = $false;
