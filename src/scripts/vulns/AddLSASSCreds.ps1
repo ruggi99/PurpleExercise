@@ -36,7 +36,7 @@ $task_name = Get-Random -InputObject $TASK_NAMES
 
 
 Invoke-Command -ComputerName $hostname -Credential $admin -ScriptBlock {
-    schtasks /create /sc minute /mo 1 /tn $using:task_name /tr calc.exe /ru $($using:username) /rp $($using:password) /f
+    schtasks /create /sc minute /mo 10 /tn $using:task_name /tr calc.exe /ru $($using:username) /rp $($using:password) /f
     schtasks /run /tn "$using:task_name"
 }
 
