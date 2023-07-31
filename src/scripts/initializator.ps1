@@ -137,7 +137,7 @@ cmd /c pause
 rm $USERS_PATH -ErrorAction Ignore
 
 # Create a set of users
-for ($i = 0; $i -lt 10; $i++) {
+for ($i = 0; $i -lt 9; $i++) {
     switch(Get-Random -Maximum 3) {
         0 { .\scripts\vulns\AddUserDefaultPassword.ps1 -limit 1 }
         1 { .\scripts\vulns\AddUserPwdInObjectDescription.ps1 -limit 1 }
@@ -145,10 +145,8 @@ for ($i = 0; $i -lt 10; $i++) {
     }
 }
 
-$json_users = Get-Content -Path $USERS_PATH -Raw | ConvertFrom-Json
-$keys = $json_users.PSObject.Properties | Select-Object -ExpandProperty Name
-$random_user = $keys | Get-Random
-$password = $json_users.$random_user
+# Create user with RDP rights. No default password and no password in description
+$random_user, $password = AddAdUser
 
 $labConfig = Get-Content -Path $LAB_CONFIG_PATH -Raw | ConvertFrom-Json
 $labConfig.lab.user_credentials.user = $random_user
@@ -158,11 +156,11 @@ $labConfig | ConvertTo-Json | Out-File -Encoding utf8 $LAB_CONFIG_PATH
 # Test asset availability using local admin creds
 foreach ($asset in $config.assets) {
     # Create credential object for the asset admin
-    $creds = New-Object System.Management.Automation.PSCredential -ArgumentList "$($asset.username)",(ConvertTo-SecureString -String $asset.password -AsPlainText -Force)
+    $local_admin = New-Object System.Management.Automation.PSCredential -ArgumentList "$($asset.username)",(ConvertTo-SecureString -String $asset.password -AsPlainText -Force)
 
     do {
         $repeat = $false;
-        $err = Invoke-Command -ComputerName $asset.ip -Credential $creds -ScriptBlock { whoami }
+        $err = Invoke-Command -ComputerName $asset.ip -Credential $local_admin -ScriptBlock { whoami }
         if ($err -eq $null) {
             $repeat = $true
             Write-Bad "$($asset.hostname) ($($asset.ip)) test connection failed"
