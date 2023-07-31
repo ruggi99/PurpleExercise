@@ -40,6 +40,10 @@ do {
     }
 } while ($repeat)
 
+Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock {
+    Set-TimeZone -ID "W. Europe Standard Time"
+}
+
 $installState = $(Invoke-Command -ComputerName $config.domain.dcip -Credential $admin -ScriptBlock { (Get-WindowsFeature -Name "AD-domain-services").InstallState }).value
 
 if ($installState -eq "Installed") {
