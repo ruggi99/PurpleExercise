@@ -1,3 +1,8 @@
 src/server/__pycache__
 
 subinacl.exe
+
+src/AD_network.json
+src/config.json
+src/game_state.json
+src/users.json
